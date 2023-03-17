@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from penalties import *
+#from penalties import *
 import networkx as nx
 from utils import debugger
 import torch
@@ -70,6 +70,7 @@ def l0_glasso_row(w, lamb, eta):
         # Return a sorted kernel such that the first row (input) contains the 
         # maximum of the column (neuron). The index records the input with the 
         # maximum value of that column.
+        """
         sorted_w = tf.sort(tf.math.abs(w), axis=1, direction='DESCENDING')
         indices = tf.argsort(tf.math.abs(w), axis=1, direction='DESCENDING')
 
@@ -84,11 +85,38 @@ def l0_glasso_row(w, lamb, eta):
         for i in range(w.shape[0]):
             if values[i]>0:
                 w_new[i, indices[i, :ind[i]+1]] = w[i, indices[i, :ind[i]+1]]
+        """
+        
+
+
+        #S = tf.zeros_like(w).numpy()
+        sorted_w = tf.sort(tf.math.abs(w), axis=1, direction='DESCENDING')
+        indices = tf.argsort(tf.math.abs(w), axis=1, direction='DESCENDING')
+        for i in range(S.shape[1]):
+            y_i = tf.norm(sorted_w[:i+1, ], ord="euclidean", axis=0)
+            S[:, i] = tf.where(y_i>lamb, 0.5*(y_i-lamb)**2-(i+1)*eta, S[:, i])
+
+        values = tf.math.reduce_max(S, axis=0)
+        ind = tf.math.argmax(S, 0)
+
+        w_new = tf.zeros_like(w).numpy() 
+
+        for i in range(w.shape[0]):
+            if values[i]>0:
+                w_new[indices[:ind[i] + 1, i], i] = w[indices[:ind[i] + 1, i], i]
+        
+
+
 
         col_norm = tf.norm(w_new, ord="euclidean", axis=0)
         norm_coef = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1-lamb/col_norm)
         w_new = w_new * norm_coef
-    
+
+
+
+
+
+
     return w_new
 
 
@@ -130,18 +158,20 @@ def l0_glasso_fast(w, lamb, eta):
         #u_new_unnormalized = u_zeros*torch.sign(u)
         w_new_unnormalized = w_zeros*tf.math.sign(w)
 
-        # Normalization by column (regular)
+        ## Normalization by column (regular)
         col_norm = tf.norm(w_new_unnormalized, ord="euclidean", axis=0)
         norm_coef_1 = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1 - lamb/col_norm)
-        ##w_new = w_new_unnormalized * norm_coef
+        w_new = w_new_unnormalized * norm_coef_1
         
         # Normalization by row (experimental)
-        col_norm = tf.norm(w_new_unnormalized, ord="euclidean", axis=1)
-        norm_coef_2 = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1 - lamb/col_norm)
-        w_new = tf.zeros_like(w_new_unnormalized).numpy()
-        for index in range(len(norm_coef_2)):
-            w_new[index] = w_new_unnormalized[index] * norm_coef_2[index]
-        #w_new = w_new * norm_coef_1
+        #w_new = w_new.numpy()
+        #col_norm = tf.norm(w_new, ord="euclidean", axis=1)
+        #norm_coef_2 = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1 - lamb/col_norm)
+        #w_new = tf.zeros_like(w_new_unnormalized).numpy()
+        #for index in range(len(norm_coef_2)):
+            #w_new[index] = w_new_unnormalized[index] * norm_coef_2[index]
+            #w_new[index] = w_new[index] * norm_coef_2[index]
+    
     return w_new
 
 

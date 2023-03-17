@@ -349,7 +349,7 @@ class RestrictedNN(tf.keras.Model):
                     activation=activation, 
                     name=f"{mod}_mod",
                     #pbias = 1.0,
-                    use_bias=False,
+                    use_bias=True,
                     kernel_initializer=self.initializer,
                     kernel_regularizer=self.module_regularizer)
             

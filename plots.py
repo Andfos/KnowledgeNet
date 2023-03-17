@@ -185,9 +185,9 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
             #weights_abs.columns = children
             #weights_abs = pd.DataFrame(abs(array))
             
-            tsne = TSNE(n_components=1, perplexity=1, n_iter=300)
-            tsne_results = tsne.fit_transform(connections)
-            normed = 20 * ((tsne_results - tsne_results.mean()) / tsne_results.std())
+            #tsne = TSNE(n_components=1, perplexity=1, n_iter=300)
+            #tsne_results = tsne.fit_transform(connections)
+            #normed = 20 * ((tsne_results - tsne_results.mean()) / tsne_results.std())
 
             start_index = 0
             node_counter = 0

@@ -9,12 +9,12 @@ import tensorflow as tf
 import numpy as np
 from keras.utils import np_utils
 from utils import *
-from networks_3 import RestrictedNN, save_model
-from tensorflow.keras.utils import plot_model
-from packaging import version
-import tensorboard
-from penalties import *
-from training3 import (
+from networks import RestrictedNN, save_model
+#from tensorflow.keras.utils import plot_model
+#from packaging import version
+#import tensorboard
+#from penalties import *
+from training import (
         get_loss, train_network, prune_network, check_network, get_accuracy)
 from plots import construct_ontology, construct_network, cm_analysis
 import networkx as nx
@@ -55,9 +55,10 @@ if BUILD_MODE:
             input_dim=INPUT_DIM,  
             lower=LOWER,
             upper=UPPER)
+    classes = ["Output"]
 
 
-# If running in TEST_MODE (aka not BUILD_MODE), load the data from file.
+# If running in PRODUCTION_MODE (aka not BUILD_MODE), load the data from file.
 else:
     data = pd.read_csv(DATA_FILE, sep="\t")
     X = data.iloc[:, 0:-1].to_numpy()
@@ -228,8 +229,14 @@ dG_current = model.dG
 score = 1
 for prune_train_iter in range(0, PRUNE_TRAIN_ITERATIONS):
     update = False
-    gl_pen *= 1.1
-    l0_pen *= 1.1
+    if gl_pen < MAX_GL:
+        gl_pen *= 1.05
+    else:
+        gl_pen = MAX_GL
+    if l0_pen < MAX_L0:
+        l0_pen *= 1.05
+    else:
+        l0_pen = MAX_L0
 
     # Update the user on the progress of pruning every UPDATE_ITERS.
     if (prune_train_iter % UPDATE_ITERS) == 0 and prune_train_iter != 0:
