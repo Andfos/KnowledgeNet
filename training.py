@@ -18,160 +18,153 @@ np.set_printoptions(suppress=True)
 
 
 
-def l0_glasso(w, lamb, eta):
+
+
+
+
+
+def sparse_group_lasso(w, lamb1, eta1, lamb2, eta2):
     w = w.numpy()
-    S = tf.zeros_like(w).numpy()
-    
+    S = tf.zeros_like(w).numpy()       
+    #w = tf.constant([[1.,2.,3.], [4.,5.,6.]], dtype=tf.float32)
+    lamb = max(lamb1, lamb2)
+
     # For updating biases.
     if len(w.shape)<2:
-        S = tf.where(tf.math.abs(w) > lamb, 0.5 * (w - lamb)**2 * eta, S)
-        w_new = tf.where(S > 0, (1- lamb/tf.math.abs(w)) * w, tf.zeros_like(w))
+        S = tf.where(tf.math.abs(w) > lamb1, 0.5 * (w - lamb1)**2 * eta1, S)
+        w_new = tf.where(S > 0, (1- lamb1/tf.math.abs(w)) * w, tf.zeros_like(w))
     
     # For updating weights.
     else:
-
-        # Return a sorted kernel such that the first row (input) contains the 
-        # maximum of the column (neuron). The index records the input with the 
-        # maximum value of that column.
-        sorted_w = tf.sort(tf.math.abs(w), axis=0, direction='DESCENDING')
-        indices = tf.argsort(tf.math.abs(w), axis=0, direction='DESCENDING')
-
-        for i in range(S.shape[0]):
-            y_i = tf.norm(sorted_w[:i+1,:], ord="euclidean", axis=0)
-            S[i,:] = tf.where(y_i>lamb, 0.5*(y_i-lamb)**2-(i+1)*eta, S[i,:])
         
-        values = tf.math.reduce_max(S, axis=0)
-        ind = tf.math.argmax(S, 0)
+        # Induce sparsity within columns.
+        if eta1 != 0.0:
+            #print("sparsity by column")
+            w_ones = tf.ones_like(w).numpy()
+            w_zeros = tf.zeros_like(w).numpy()
+            w_tens = w_ones * 10
+            
+            # Record the column indices of each element in w.
+            c_diag = tf.cast(tf.linalg.diag(tf.range(0, w.shape[1])), tf.float32)
+            cols = tf.matmul(w_ones,c_diag)
+            
+            # Sort w by column, such that the maximum of each column is in the 
+            # 1st row.
+            sorted_w = tf.sort(tf.math.abs(w), axis=0, direction='DESCENDING')
+            
+            # Record the original row indices of each element in sorted_w.
+            indices = tf.argsort(tf.math.abs(w), axis=0, direction='DESCENDING')
+            
+            # Generate y_i, which should get larger as the row index increases.
+            lower_tri = tf.linalg.band_part(
+                    tf.ones((w.shape[0], w.shape[0])), -1, 0)
+            y_i = tf.math.sqrt(tf.matmul(lower_tri, sorted_w**2))
+            
+            # Create a matrix representing the relative penalty applied to deeper
+            # rows (rows further down in sorted_w).
+            tri = tf.cast(tf.linalg.diag(tf.range(1, w.shape[0]+1)),tf.float32)
+            row_penalty = tf.matmul(tri, w_tens)
+            
+            # See if an entire column can be zeroed-out. Alternatively apply a 
+            # penalty that can be used to induce individual column sparsity.
+            S = tf.where(y_i > lamb1,
+                         0.5*(y_i - lamb1)**2 - eta1*row_penalty,
+                         S)
+            
+            # Obtain the maximum row index of each column of sorted_w that should 
+            # not be zerod out.
+            values = tf.math.reduce_max(S, axis=0)
+            row_ind = tf.math.argmax(S, 0)
+            row_indx = tf.where(values>0, row_ind+1, tf.zeros_like(row_ind))
+            
+            # Create a sparsity mask.
+            ind0 = tf.where(tf.matmul(w_ones, tf.cast(tf.linalg.diag(row_indx),
+                                                      tf.float32))
+                            < tf.matmul(tri, w_ones),
+                            w_zeros, w_ones)
+            
+            # Retrieve the orginal elements of w, or set the element to 0.
+            w_zeros[indices, tf.cast(cols, tf.int64)] = sorted_w * ind0
+            w = w_zeros*tf.math.sign(w)
+                                                                        
         
-        w_new = tf.zeros_like(w).numpy() 
-        for i in range(w.shape[1]):
-            if values[i]>0:
-                w_new[indices[:ind[i]+1,i], i] = w[indices[:ind[i]+1,i], i]
 
-        col_norm = tf.norm(w_new, ord="euclidean", axis=0)
-        norm_coef = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1-lamb/col_norm)
-        w_new = w_new * norm_coef
+        # Induce sparsity within rows.
+        if eta2 != 0.0:
+            #print("sparsity by row")
+            S = tf.zeros_like(w).numpy()       
+            w_zeros = tf.zeros_like(w).numpy()
+            w_ones = tf.ones_like(w).numpy()
+            
+            # Record the row indices of each element in w.
+            c_diag = tf.cast(tf.linalg.diag(tf.range(0, w.shape[0])), tf.float32)
+            rows = tf.matmul(c_diag, w_ones)
+            
+            # Sort w by row, such that the maximum of each row is in the 1st column.
+            sorted_w = tf.sort(tf.math.abs(w), axis=1, direction='DESCENDING')
+            
+            # Record the original column indices of each element in sorted_w.
+            indices = tf.argsort(tf.math.abs(w), axis=1, direction='DESCENDING')
+            
+            # Generate y_i, which should get larger as the column index increases.
+            upper_tri = tf.linalg.band_part(
+                    tf.ones((w.shape[1], w.shape[1])), 0, -1)
+            y_i = tf.math.sqrt(tf.matmul(sorted_w**2, upper_tri))
+            
+            # Create a matrix representing the relative penalty applied to deeper
+            # columns (columns further to the right in sorted_w).
+            tri = tf.cast(tf.linalg.diag(tf.range(1, w.shape[1]+1)),tf.float32)
+            column_penalty = tf.matmul(w_ones, tri)
+            
+            
+            # See if an entire row can be zeroed-out. Alternatively apply a penalty 
+            # that can be used to induce individual row sparsity.
+            S = tf.where(y_i > lamb,
+                         0.5*(y_i - lamb)**2 - eta2*column_penalty,
+                         S)
+
+            # Obtain the maximum column index of each row of sorted_w that should 
+            # not be zerod out.
+            values = tf.math.reduce_max(S, axis=1)
+            col_ind = tf.math.argmax(S, 1)
+
+            # Get the maximum column index to keep for each row in sorted_w, or
+            # keep no columns and set the entire row to 0.
+            col_indx = tf.where(values>0, col_ind+1, tf.zeros_like(col_ind))
+            
+            # Create a sparsity mask.
+            ind0 = tf.where(tf.matmul(tf.cast(tf.linalg.diag(col_indx), tf.float32), 
+                                     w_ones) < tf.matmul(w_ones, tri),
+                            w_zeros, w_ones)
+            
+            # Retrieve the orginal elements of w, or set the element to 0.
+            w_zeros[tf.cast(rows, tf.int64), indices] = sorted_w * ind0
+            w = w_zeros*tf.math.sign(w)
+
+
+        w_new = w
+        # Normalization by column.
+        
+        if lamb1 != 0.0:
+            #print("normalizing by column")
+            col_norm = tf.norm(w_new, ord="euclidean", axis=0)
+            norm_coef1 = tf.where(
+                    col_norm == 0, tf.zeros_like(col_norm), 1 - lamb1/col_norm)
+            w_new = w_new * norm_coef1
+        
+        
+        # Normalization by row.
+        if lamb2 != 0.0:
+            #print("normalizing by row")
+            row_norm = tf.norm(w_new, ord="euclidean", axis=1)
+            norm_coef2 = tf.where(
+                    row_norm == 0, tf.zeros_like(row_norm), 1 - lamb2/row_norm)
+            #w_temp = tf.zeros_like(w_new).numpy()
+            w_new = w_new.numpy()
+            for index in range(len(norm_coef2)):
+                w_new[index] = w_new[index] * norm_coef2[index]
     
-    return w_new
 
-
-def l0_glasso_row(w, lamb, eta):
-    w = w.numpy()
-    S = tf.zeros_like(w).numpy()
-    
-    # For updating biases.
-    if len(w.shape)<2:
-        S = tf.where(tf.math.abs(w) > lamb, 0.5 * (w - lamb)**2 * eta, S)
-        w_new = tf.where(S > 0, (1- lamb/tf.math.abs(w)) * w, tf.zeros_like(w))
-    
-    # For updating weights.
-    else:
-
-        # Return a sorted kernel such that the first row (input) contains the 
-        # maximum of the column (neuron). The index records the input with the 
-        # maximum value of that column.
-        """
-        sorted_w = tf.sort(tf.math.abs(w), axis=1, direction='DESCENDING')
-        indices = tf.argsort(tf.math.abs(w), axis=1, direction='DESCENDING')
-
-        for i in range(S.shape[1]):
-            y_i = tf.norm(sorted_w[:, :i+1], ord="euclidean", axis=1)
-            S[:,i] = tf.where(y_i>lamb, 0.5*(y_i-lamb)**2-(i+1)*eta, S[:,i])
-        
-        values = tf.math.reduce_max(S, axis=1)
-        ind = tf.math.argmax(S, 1)
-        
-        w_new = tf.zeros_like(w).numpy() 
-        for i in range(w.shape[0]):
-            if values[i]>0:
-                w_new[i, indices[i, :ind[i]+1]] = w[i, indices[i, :ind[i]+1]]
-        """
-        
-
-
-        #S = tf.zeros_like(w).numpy()
-        sorted_w = tf.sort(tf.math.abs(w), axis=1, direction='DESCENDING')
-        indices = tf.argsort(tf.math.abs(w), axis=1, direction='DESCENDING')
-        for i in range(S.shape[1]):
-            y_i = tf.norm(sorted_w[:i+1, ], ord="euclidean", axis=0)
-            S[:, i] = tf.where(y_i>lamb, 0.5*(y_i-lamb)**2-(i+1)*eta, S[:, i])
-
-        values = tf.math.reduce_max(S, axis=0)
-        ind = tf.math.argmax(S, 0)
-
-        w_new = tf.zeros_like(w).numpy() 
-
-        for i in range(w.shape[0]):
-            if values[i]>0:
-                w_new[indices[:ind[i] + 1, i], i] = w[indices[:ind[i] + 1, i], i]
-        
-
-
-
-        col_norm = tf.norm(w_new, ord="euclidean", axis=0)
-        norm_coef = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1-lamb/col_norm)
-        w_new = w_new * norm_coef
-
-
-
-
-
-
-    return w_new
-
-
-def l0_glasso_fast(w, lamb, eta):
-    w = w.numpy()
-    S = tf.zeros_like(w).numpy()
-    
-    # For updating biases.
-    if len(w.shape)<2:
-        S = tf.where(tf.math.abs(w) > lamb, 0.5 * (w - lamb)**2 * eta, S)
-        w_new = tf.where(S > 0, (1- lamb/tf.math.abs(w)) * w, tf.zeros_like(w))
-    
-    # For updating weights.
-    else:
-        w_ones = tf.ones_like(w).numpy()
-        w_zeros = tf.zeros_like(w).numpy()
-        c_diag = tf.cast(tf.linalg.diag(tf.range(0, w.shape[1])), tf.float32)
-        cols = tf.matmul(w_ones,c_diag)
-        sorted_w = tf.sort(tf.math.abs(w), axis=0, direction='DESCENDING')
-        indices = tf.argsort(tf.math.abs(w), axis=0, direction='DESCENDING')
-        lower_tri = tf.linalg.band_part(
-                tf.ones((w.shape[0], w.shape[0])), -1, 0)
-        #y_i = torch.sqrt(torch.mm(lower_tri,sorted_u**2)) 
-        y_i = tf.math.sqrt(tf.matmul(lower_tri, sorted_w**2))
-        #S = torch.where(y_i>lamb, 0.5*(y_i - lamb)**2 - eta*torch.mm(torch.diag(torch.arange(1,u.shape[0]+1)).to(device).float(),u_ones), S)
-        tri = tf.cast(tf.linalg.diag(tf.range(1, w.shape[0]+1)),tf.float32)
-        S = tf.where(y_i > lamb,
-                     0.5*(y_i - lamb)**2 - eta*tf.matmul(tri, w_ones),
-                     S)
-        values = tf.math.reduce_max(S, axis=0)
-        ind = tf.math.argmax(S, 0)
-        indx = tf.where(values>0, ind+1, tf.zeros_like(ind))
-        #ind0 = torch.where(torch.mm(u_ones,torch.diag(indx).to(device).float())<torch.mm(torch.diag(torch.arange(1,u.shape[0]+1)).to(device).float(),u_ones),u_zeros,u_ones)
-        ind0 = tf.where(tf.matmul(w_ones, tf.cast(tf.linalg.diag(indx),
-                                                  tf.float32))
-                        < tf.matmul(tri, w_ones),
-                        w_zeros, w_ones)
-        w_zeros[indices, tf.cast(cols, tf.int64)] = sorted_w * ind0
-        #u_new_unnormalized = u_zeros*torch.sign(u)
-        w_new_unnormalized = w_zeros*tf.math.sign(w)
-
-        ## Normalization by column (regular)
-        col_norm = tf.norm(w_new_unnormalized, ord="euclidean", axis=0)
-        norm_coef_1 = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1 - lamb/col_norm)
-        w_new = w_new_unnormalized * norm_coef_1
-        
-        # Normalization by row (experimental)
-        #w_new = w_new.numpy()
-        #col_norm = tf.norm(w_new, ord="euclidean", axis=1)
-        #norm_coef_2 = tf.where(col_norm == 0, tf.zeros_like(col_norm), 1 - lamb/col_norm)
-        #w_new = tf.zeros_like(w_new_unnormalized).numpy()
-        #for index in range(len(norm_coef_2)):
-            #w_new[index] = w_new_unnormalized[index] * norm_coef_2[index]
-            #w_new[index] = w_new[index] * norm_coef_2[index]
-    
     return w_new
 
 
@@ -200,7 +193,7 @@ def get_loss(model, y_true, y_pred, reg_penalty=True, group_penalty=False):
             if var.shape[0] > 1 and "inp" not in var.name:
                 gl_loss = tf.math.multiply(
                         tf.math.reduce_sum(
-                                tf.norm(var, ord = "euclidean", axis=1)), 
+                                tf.norm(var, ord = "euclidean", axis=0)), 
                                 0.5)
                 loss = tf.math.add(loss, gl_loss)
     return loss
@@ -414,7 +407,7 @@ def check_network(model, dG_init, drop_cols):
 
 
 def prune_network(model, X, y, train_dataset, prune_epochs, 
-                  optimizer, gl_pen, l0_pen):
+                  optimizer, gl_pen1, l0_pen1, gl_pen2, l0_pen2):
 
     for prune_epoch in range(prune_epochs):
         for batch in train_dataset:
@@ -427,7 +420,7 @@ def prune_network(model, X, y, train_dataset, prune_epochs,
                 trainable_vars = model.trainable_variables
                 loss = get_loss(
                         model, y, train_preds, 
-                        reg_penalty=True, group_penalty=False)
+                        reg_penalty=True, group_penalty=True)
                 
                 grads = tape.gradient(loss, trainable_vars)
             del tape
@@ -465,9 +458,13 @@ def prune_network(model, X, y, train_dataset, prune_epochs,
                 for k in range(150):
                     
                     s = 1.0/(1.1*L)
-                    u_new = l0_glasso_fast((old_param - s*tf.stop_gradient(grad)), 
-                                           s*gl_pen,
-                                           s*l0_pen)
+                    u_new = sparse_group_lasso(
+                            (old_param - s*tf.stop_gradient(grad)), 
+                            s*gl_pen1,
+                            s*l0_pen1,
+                            s*gl_pen2,
+                            s*l0_pen2)
+
                     var.assign(u_new)
                     var_diff = tf.math.subtract(tf.stop_gradient(u_new), old_param)
                     Q_L = (fy 
