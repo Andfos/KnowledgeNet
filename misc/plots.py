@@ -37,38 +37,36 @@ def plot_preds(filepath, title, X, y, converge = True, **kwargs):
 
 
 
-def plot_loss(filepath, train_size = "100%", converge = True, **kwargs): 
+def plot_loss(filepath, title, **kwargs): 
     
     """ Function to plot the traiing versus validation loss"""
     fig, ax = plt.subplots()
     
     # Plot the loss curves
+    plt.figure(figsize=(12.8,4.8))
     for key, value in kwargs.items():
-        plt.plot(value[0], label = "{}: {} rmse".format(value[3],
-                                                        value[1]))
+        plt.plot(
+            value[0], 
+            color = value[1], 
+            label = "{}: {} rmse".format(value[2], value[3]))
 
-    plt.title("Model loss: Train size = {}".format(train_size))
+    plt.title(title)
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
-    plt.legend()
-    #plt.show()
-    if converge == True:
-        plt.savefig(filepath)
+    plt.legend(loc="upper right")
+    plt.savefig(filepath)
+    plt.close()
 
 
 
 
 
-
-def plot_preds_3D(filepath, function, x, y, z, **kwargs):
+def plot_preds_3D(filepath, function, x, y, z, title, **kwargs):
     
     fig = plt.figure()
     ax = plt.axes(projection='3d')
-    #ax.plot_surface(x1, y1, z, cmap ='viridis',rstride = 1, cstride = 1,  edgecolor ='none')
     ax.plot_wireframe(x, y, z, color='black')
     for key, value in kwargs.items():
-        #ax.scatter3D(x, y, value[0], label = "{}: {} rmse".format(key, 
-        #                                                    value[1]))
         ax.plot_wireframe(x, y, value[0], 
                           color = value[2], 
                           label = "{}: {} rmse".format(value[3], value[1]))
@@ -76,12 +74,11 @@ def plot_preds_3D(filepath, function, x, y, z, **kwargs):
     ax.set_xlabel('x1')
     ax.set_ylabel('x2')
     ax.set_zlabel('f(X)')
+    ax.set_title(title)
     plt.legend()
     fig.tight_layout()
     fig.subplots_adjust(right=0.6)
     ax.legend(loc='center left', bbox_to_anchor=(1.08, 0.93), fontsize=7)
-    
-    #plt.show()
     plt.savefig(filepath)
     plt.show()
     
