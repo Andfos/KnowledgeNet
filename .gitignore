@@ -1,7 +1,8 @@
 .DS_Store
-Experiments
+experiments
 __pycache__
-Misc/Images
-Misc/__pycache__
-test.py
+misc/Images
+misc/__pycache__
+docs
+data
 
