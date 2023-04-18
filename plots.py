@@ -107,8 +107,11 @@ def construct_ontology(dG, root, title="Ontology", module_file=None):
 
 def construct_network(model, sub_dG, classes, title="Network", module_file=None):
     
-    cluster = "min_crossover"
+    #cluster = "min_crossover"
+    cluster = None
 
+    # Initialize a dataframe and lists to record the architecture of the
+    # network.
     network_df = pd.DataFrame()
     source_ids = list()
     source_names = list()
@@ -119,8 +122,8 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
     edge_values = list()
     y_coords = dict()
     
+    # Iterate through the models trainable variables.
     for var in model.trainable_variables:
-
         array = tf.cast(var, tf.float32).numpy()
         layer_name = var.name.split("/")[0]
         mod = layer_name.split("_")[0]
@@ -131,7 +134,8 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
         if mod not in sub_dG.nodes:
             continue
 
-
+        # Only record the architecture for input layers, module layers, and 
+        # auxiliary layers.
         if layer_type not in ["inp", "mod", "aux"]:
             continue
         if "bias" in var.name:
@@ -142,8 +146,7 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
         array = array * layer.connections.numpy()
         connections = layer.connections
         
-
-
+        # Record the architecture of an auxiliary layer.
         if "aux" in layer_type:
             for i, w in enumerate(array):
                 source_ids.append(f"{mod}_{i}")
@@ -154,7 +157,7 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
                 target_types.append(layer_type)
                 edge_values.append(w[0])
                 
-
+        # Record the architecture of an input layer.
         elif "inp" in layer_type:
 
             input_set = sorted(list(model.term_direct_input_map[mod]))
@@ -254,6 +257,8 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
     placeholder_coords = ["NA"] * len(source_ids)
     network_df["y_coord"] = placeholder_coords
     
+
+
     
 
     for source, y_coord in y_coords.items():
@@ -279,6 +284,14 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
         if len(network_df.index) == len(df_init.index):
             break
         df_init = network_df.copy()
+    
+
+
+
+
+
+    #pd.set_option('display.max_rows', None)
+
     
     
     if cluster == "tsne":
@@ -312,9 +325,11 @@ def construct_network(model, sub_dG, classes, title="Network", module_file=None)
                 rev_df.loc[rev_df["target_id"] == target, "y_coord"] = y_coord
             else:
                 temp2 = rev_df.loc[rev_df["source_id"] == target]
+
                 w_av = (
                         sum(temp2["y_coord"] * temp2["edge_value"]) / 
                         sum(temp2["edge_value"]))
+                
                 rev_df.loc[rev_df["target_id"] == target, "y_coord"] = w_av
                 network_df.loc[network_df["source_id"] == target, "y_coord"] = w_av
 

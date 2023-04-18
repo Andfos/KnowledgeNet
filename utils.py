@@ -80,10 +80,14 @@ def set_module_neurons(n, dynamic_neurons_func):
     """ Retrieve the number of neurons for a given module. 
 
     This function allows the user to specify the number of neurons a module 
-    will contain as a function of the number of its inputs.
+    will contain as a function of the number of its inputs. It can be static, 
+    where each module layer gets the same number of inputs, or it can be 
+    dynamic, where the number of neurons is a function of the number of inputs 
+    to the layer.
     """
     math_funcs["n"] = n
     mod_neurons = eval(dynamic_neurons_func, {"__builtins__":None}, math_funcs)
+    
     return(mod_neurons)
 
 
@@ -102,14 +106,8 @@ def load_mapping(mapping_file):
         mapping(dict): Dictionary mapping inputs to their ids.
     """
     
-    mapping = {}
-    file_handle = open(mapping_file)
-    
-    for line in file_handle:
-        line = line.rstrip().split()
-        mapping[line[1]] = int(line[0])
-
-    file_handle.close()
+    mapping_df = pd.read_csv(mapping_file, sep="\t").iloc[:, 0:2]
+    mapping = dict(zip(mapping_df.Feature, mapping_df.ID))
     
     return mapping
 
@@ -170,7 +168,7 @@ def load_ontology(file_name, input_id_map):
         # If mapping between inputs and a module...
         else:
             if child not in input_id_map:
-                print("Input {child} not in the input id map file")
+                print(f"Input {child} not in the input id map file.")
                 sys.exit(1)                    
             
             # If the module is mapped directly to inputs, instantiate a new 

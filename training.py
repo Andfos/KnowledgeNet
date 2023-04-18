@@ -24,9 +24,10 @@ np.set_printoptions(suppress=True)
 
 
 def sparse_group_lasso(w, lamb1, eta1, lamb2, eta2):
+    
+    #w = tf.constant([[1.,2.,3.], [4.,5.,6.]], dtype=tf.float32)
     w = w.numpy()
     S = tf.zeros_like(w).numpy()       
-    #w = tf.constant([[1.,2.,3.], [4.,5.,6.]], dtype=tf.float32)
     lamb = max(lamb1, lamb2)
 
     # For updating biases.

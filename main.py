@@ -9,11 +9,7 @@ import tensorflow as tf
 import numpy as np
 from keras.utils import np_utils
 from utils import *
-from networks import RestrictedNN, save_model
-#from tensorflow.keras.utils import plot_model
-#from packaging import version
-#import tensorboard
-#from penalties import *
+from networks import KnowledgeNet
 from training import (
         get_loss, train_network, prune_network, check_network, get_accuracy)
 from plots import construct_ontology, construct_network, cm_analysis
@@ -23,14 +19,6 @@ from tensorflow.keras import regularizers
 from sklearn import preprocessing
 import pickle
 import shap
-
-optimizer = tf.keras.optimizers.Adam(
-    learning_rate=0.001,
-    beta_1=0.9,
-    beta_2=0.999,
-    epsilon=1e-07,
-    amsgrad=False,
-    name='Adam')
 
 
 
@@ -64,6 +52,8 @@ else:
     X = data.iloc[:, 0:-1].to_numpy()
     y = data.iloc[:, -1:].to_numpy()
     le = preprocessing.LabelEncoder()
+    
+    #y = y.ravel()
     le.fit(y)
     y = le.transform(y)
     classes = le.classes_
@@ -76,18 +66,31 @@ else:
 X_train, X_test, y_train, y_test = train_test_split(X, y, 
                                                     test_size=TEST_SIZE,
                                                     random_state=42)
+
 train_dataset = tf.data.Dataset.from_tensor_slices((X_train, y_train))
 train_dataset = train_dataset.batch(BATCH_SIZE)
 
 
 # Load the ontology.
-input_id_map = load_mapping(f"{EXP_DIR}/Data/inputID.txt")
+input_id_map = load_mapping(f"{EXP_DIR}/data/features.tsv")
 dG, root, term_size_map, term_direct_input_map = load_ontology(
         f"{EXP_DIR}/Data/ontology.txt", 
         input_id_map)
 
+
+
+# Set the optimizer
+optimizer = tf.keras.optimizers.Adam(
+    learning_rate=0.001,
+    beta_1=0.9,
+    beta_2=0.999,
+    epsilon=1e-07,
+    amsgrad=False,
+    name='Adam')
+
+
 # Load a pretrained model or initialize a new one.
-model = RestrictedNN(
+model = KnowledgeNet(
         output_dim = OUTPUT_DIM,
         output_act = OUTPUT_ACT,
         module_act = MODULE_ACT,
@@ -106,6 +109,12 @@ model = RestrictedNN(
         batchnorm=BATCHNORM) 
 
 
+#model.compile(optimizer=optimizer, loss=LOSS_FN)
+#history = model.fit(X_train, y_train, batch_size=64, epochs=200)
+#print(model)
+#raise
+#print(dir(model))
+#raise
 #model.construct_model()
 #model.test_model.compile(optimizer=optimizer, loss=LOSS_FN)
 #history = model.test_model.fit(X_train, y_train, batch_size=64, epochs=200, 
@@ -188,10 +197,11 @@ onto_df = construct_ontology(
         dG, model.root, title=f"Ontology\t\t{base_title}",
         module_file=MODULE_FILE)
 onto_df.to_csv(f"{RES_DIR}/Ontology_{base_savefile}.csv")
-network_df = construct_network(
-        model, model.dG, classes, title=f"Network:\t{base_title}", 
-        module_file=MODULE_FILE)
-network_df.to_csv(f"{RES_DIR}/Network_{base_savefile}.csv")
+
+#network_df = construct_network(
+#        model, model.dG, classes, title=f"Network:\t{base_title}", 
+#        module_file=MODULE_FILE)
+#network_df.to_csv(f"{RES_DIR}/Network_{base_savefile}.csv")
 
 
 if CLASSIFICATION:
@@ -227,39 +237,92 @@ scores_df["Score"] = init_scores
 # Prune the unneeded modules.
 dG_current = model.dG
 score = 1
+pruning_period = 1
+init_sparsity = 0.0
+sparsity = 0.0
 for prune_train_iter in range(0, PRUNE_TRAIN_ITERATIONS):
     update = False
-    if gl_pen < MAX_GL:
-        gl_pen *= 1.05
-    else:
-        gl_pen = MAX_GL
-    if l0_pen < MAX_L0:
-        l0_pen *= 1.05
-    else:
-        l0_pen = MAX_L0
+    retrain = False
+    # Set the penalties for pruning columns.
+    if pruning_period == 1:
+        GL_PEN1 = 0.0
+        L0_PEN2 = 0.0
 
-    # Update the user on the progress of pruning every UPDATE_ITERS.
-    if (prune_train_iter % UPDATE_ITERS) == 0 and prune_train_iter != 0:
-        update = True
+        # Increment the group lasso penalty for columns.
+        if GL_PEN2 < MAX_GL2:
+            GL_PEN2 *= 1.05
+        else:
+            GL_PEN2 = MAX_GL2
+        
+        # Increment the L0 penalty for columns.
+        if L0_PEN1 < MAX_L01:
+            L0_PEN1 *= 1.1
+        else:
+            L0_PEN1 = MAX_L01
 
+    # Set the penalties for pruning rows.
+    if pruning_period == 2:
+        L0_PEN2 = 0.0
+        GL_PEN2 = 0.0
+        # Increment the group lasso penalty for rows.
+        if GL_PEN1 < MAX_GL1:
+            GL_PEN1 *= 1.05
+        else:
+            GL_PEN1 = MAX_GL1
+        
+        # Increment the L0 penalty for rows.
+        if L0_PEN1 < MAX_L01:
+            L0_PEN1 *= 1.1
+        else:
+            L0_PEN1 = MAX_L01
+
+        
+    
     # Prune the network weights. 
     prune_network(model, X_train, y_train,
                   train_dataset, optimizer=optimizer,
-                  gl_pen=gl_pen, l0_pen=l0_pen,
+                  gl_pen1=GL_PEN1, l0_pen1=L0_PEN1, 
+                  gl_pen2=GL_PEN2, l0_pen2=L0_PEN2,
                   prune_epochs=1)
+    
     
     # Check the network structure.
     model, dG_prune, drop_cols, sparsity = check_network(
             model, dG_current, drop_cols)
+    
+
+    # Update the user on the progress of pruning every UPDATE_ITERS.
+    if (prune_train_iter % UPDATE_ITERS) == 0 and (prune_train_iter != 0):
+        update = True
+        if init_sparsity != sparsity:
+            retrain = True
+            init_sparsity = sparsity
+        else:
+            if GL_PEN2 == MAX_GL2 and L0_PEN1 == MAX_L01:
+                pruning_period = 2
+                MAX_GL1 *= 1.5
+                MAX_L01 *= 1.5
+                MAX_GL2 *= 1.5
+                MAX_L02 *= 1.5
+                MAX_L01 = 0.999
+            if GL_PEN1 == 0.0 or L0_PEN1 == 0.0:
+                GL_PEN1 = 0.05
+                L0_PEN1 = 0.05
+            if GL_PEN1 == MAX_GL1 and L0_PEN1 == MAX_L01:
+                MAX_GL1 *= 1.5
+                MAX_L01 *= 1.5
+                MAX_GL2 *= 1.5
+                MAX_L02 *= 1.5
 
 
     # Update the graphs and retrain (if RETRAIN) if the ontology has changed.
     if (dG_current.number_of_nodes() != dG_prune.number_of_nodes() 
         or dG_current.number_of_edges() != dG_prune.number_of_edges()):
             update = True
-    
+            retrain = True
+
     # Retrain the model (if UPDATE is True and RETRAIN is enabled).
-    if update and RETRAIN:
+    if retrain:
         model = train_network(
                 model, 
                 train_dataset, 
@@ -296,10 +359,11 @@ for prune_train_iter in range(0, PRUNE_TRAIN_ITERATIONS):
     print(f"Training loss: {str(train_loss)}\tTest loss: {str(test_loss)}")
     print(f"Train accuacy: {train_acc}\tTest Acc: {test_acc}")
     print(f"Sparsity: {str(sparsity)}%")
-    print(f"Group lasso penalty: {gl_pen}\tL0 penalty: {l0_pen}")
-
-
-
+    print(f"Group lasso penalty 1: {round(GL_PEN1, 4)}\tL0 penalty 1: {round(L0_PEN1, 4)}")
+    print(f"Group lasso penalty 2: {round(GL_PEN2, 4)}\tL0 penalty 2: {round(L0_PEN2, 4)}")
+    print(f"Init sparsity {str(init_sparsity)}%")
+    print("\n\n")
+    
 
     # Save the ontology and network structure to csv files for viewing later.
     if update:
@@ -354,7 +418,7 @@ for prune_train_iter in range(0, PRUNE_TRAIN_ITERATIONS):
     
     # Update the current state of the ontology.
     dG_current = dG_prune.copy()    
-
+    
     
 
 

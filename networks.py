@@ -1,3 +1,13 @@
+"""Create wrappers for Keras.Layer.Dense class and keras.Model class for use
+in KnowledgeNet framework.
+
+Classes
+-------
+RestrictedLayer : 
+
+KnowledgeNet : 
+"""
+
 import tensorflow as tf
 import keras.layers
 from tensorflow import keras
@@ -5,7 +15,8 @@ from tensorflow.keras import initializers
 import numpy as np
 import keras.backend as K
 from tensorflow.keras import layers
-from keras.layers import Dense, Layer, Input, Concatenate, Add, BatchNormalization
+from keras.layers import (
+        Dense, Layer, Input, Concatenate, Add, BatchNormalization, Dropout)
 from keras.models import Sequential
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -18,8 +29,6 @@ from tensorflow.keras.models import Model
 from utils import set_module_neurons
 from tensorflow.keras import regularizers 
 import pandas as pd
-
-
 from keras.layers import Input
 
 
@@ -31,38 +40,64 @@ from keras.layers import Input
 
 
 class RestrictedLayer(Dense):
-    """ Build a layer where a specific connections matrix can be applied.  """
+    """Build a layer where a specific connections matrix can be applied.  
+
+    Attributes
+    ----------
+    units : int 
+        Number of neurons for the layer.
+    connections : numpy.ndarray
+        Connections mask for weights incoming to the layer (should have 
+        same shape as the layer's weight kernel.
+    pbias : float (optional) 
+        Bias to be added to the final output of the layer following the 
+        activation.
+    """
     
+
     def __init__(self, units, connections, pbias=None, **kwargs):
         """ 
         Initialize a RestrictedLayer that inherits from the Keras Dense
         class.
 
-        Args:
-            units(int): Number of nodes for layer
-            connections(numpy.ndarray): Connections mask for weights 
-                    leaving current layer.
-            pbias(float): Bias to be added to the final output of the node 
-                    following the activation.
+        Parameters
+        ----------
+        units : int 
+            Number of neurons for the layer.
+        connections : numpy.ndarray
+            Connections mask for weights incoming to the layer (should have 
+            same shape as the layer's weight kernel.
+        pbias : float (optional) 
+            Bias to be added to the final output of the layer following the 
+            activation.
         """
 
         super().__init__(units, **kwargs)
-        self.connections = connections
         
+        # Set class attributes.
+        self.connections = connections
         if pbias is not None:
             self.pbias = tf.Variable([pbias], name=f"{self.name}/pbias")
 
+
+
     def call(self, inputs):
         """ 
-        Call the restricted layer on a set of inputs.
+        Call the restricted layer on a set of inputs. 
 
-        Operation: output = activation(dot(input, kernel)+ bias) + pbias
-
-        Args:
-            inputs
-
+        Parameters
+        ----------
+        inputs : tensor
+            A tensorflow tensor of shape (batch_size, n_features)
+        
+        Returns
+        -------
+        output : tensor
+            The ouput tensor of the layer operation.
         """
         
+        # Take the dot product of the inputs with the Hadamard of the 
+        # connections and the kernel.
         output = K.dot(inputs, self.kernel * self.connections)
 
         # If the bias is to be included, add it with the output of the previous
@@ -70,10 +105,12 @@ class RestrictedLayer(Dense):
         if self.use_bias:
             output = K.bias_add(output, self.bias)
         
-        # Apply the activation function and then add the pbias term.
+        # Apply the activation function.
         output = self.activation(output)
         
+        # Add the post-bias term (if applicable) 
         if hasattr(self, "pbias"):
+        #if self.pbias != None:
             output = tf.math.add(self.pbias, output)
         
         return output
@@ -87,18 +124,11 @@ class RestrictedLayer(Dense):
 
 
 
-
-
-
-
-
-
-
-class RestrictedNN(tf.keras.Model):
+class KnowledgeNet(tf.keras.Model):
     """ 
     Creates a neural network where connections between modules can be specified.
 
-    
+        
 
 
 
@@ -120,28 +150,50 @@ class RestrictedNN(tf.keras.Model):
                  module_regularizer,
                  loss_fn,
                  aux=False, 
-                 batchnorm=False):
+                 batchnorm=True):
+        """Initialize a Restricted Neural Network
+
+        Parameters
+        ----------
+        output_dim : int
+            Number of neurons to use in the output layer.
+        output_act : str
+            The activation function to use for the output layer.
+        module_act : str
+            The activation function to use for the module layers.
+        input_act : str
+            The activation function to use for the module-input layers.
+        root : str
+            Name of the root node of the ontology.
+        dG : nx.DiGraph
+            The directed graph representing the ontology.
+        input_dim : int
+            The dimensions of the input space.
+        module_neurons_func : str 
+            String defining the function used to allocate neurons to modules.
+        term_direct_input_map : dict
+            Dictionary specifying the inputs to modules with direct input
+            mappings.
+        mod_size_map : dict 
+            Dictionary defining number of inputs annotated to each term.
+        initializer : keras.initializers.initializers_v2
+            The initializer of the weight kernels.
+        input_regularizer : keras.regularizers
+            The regularizer used on the module-input layers.
+        module_regularizer : keras.regularizers
+            The regularizer used on the module layers.
+        loss_fn : keras.losses
+            The loss function used for training the network.
+        aux : bool (default=False)
+            Boolean controlling the use of auxiliary layers.
+        batchnorm : bool (default=True)
+            Boolean controlling the use of batch-normalization after module 
+            layers.
         """
-        Initialize a Restricted Neural Network
 
-        Args:
-            output_dim(int): Number of neurons to use in the output layer.
-            root(str): Name of the root node of the ontology
-            dG(nx.DiGraph): The directed graph representing the ontology
-            input_dim(int): The dimensions of the input space.
-            module_neurons_func(str): String defining the function used to 
-                    allocate neurons to modules
-            term_direct_input_map(dict):
-            mod_size_map(dict): Dictionary defining number of inputs annotated 
-                    to each term
-
-        """
-
-
-
-        super(RestrictedNN, self).__init__()
-
+        super(KnowledgeNet, self).__init__()
         
+        # Set class attributes.
         self.output_dim = output_dim
         self.output_act = output_act
         self.module_act = module_act
@@ -158,26 +210,26 @@ class RestrictedNN(tf.keras.Model):
         self.loss_fn = loss_fn
         self.aux = aux
         self.batchnorm = batchnorm
-        self.get_module_dimensions()
         
-        # Construct the input layer.
-        self.build_input_layer()
+        # Obtain the attributes of the network before construction. 
+        self._get_network_dimensions()
         
-        # Construct the layers between modules.
-        self.build_module_layers()
+        # Construct the input layers.
+        self._build_input_layer()
         
+        # Construct the module layers.
+        self._build_module_layers()
 
 
 
-    def get_module_dimensions(self):
-        """Retrieve the number of neurons allocated to  each  module layers.
-         
-        The number of neurons in each module layer is passed in as function.
-        It can be static, where each module layer gets the same number of 
-        inputs, or it can be dynamic, where the number of neurons is a 
-        function of the number of inputs to the layer.
+    def _get_network_dimensions(self):
+        """Record the architecture of the network in a dataframe.
+        
+        The architecture of the network, including the number of neurons, the 
+        activation function, the inputs, and whether batchnormalization and an 
+        aux layer will be used is recorded for each layer of the network in 
+        separate rows in the dataframe self.network_dims.
         """
-
 
         dG_copy = self.dG.copy()
         self.module_order = []
@@ -189,62 +241,65 @@ class RestrictedNN(tf.keras.Model):
         aux_enabled = {}
         batchnorm_enabled = {}
         
-
-        
+        # Obtain the order in which layeres should be processed.
         while True:
             leaves = [n for n,d in dG_copy.out_degree() if d==0]
             if len(leaves) == 0:
                 break
             self.module_order += leaves
             dG_copy.remove_nodes_from(leaves)
-
-
-
-
-
+        
+        # Iterate over modules according to their order in the ontology.
         for mod in self.module_order:
             num_children = len(self.dG[mod])
             self.module_children[mod] = []
             [self.module_children[mod].append(c) for c in self.dG.neighbors(mod)]
-            
+
+            # Set the attributes for the ouput layer.
             if mod == self.root:
                 num_neurons = self.output_dim
                 activations[mod] = self.output_act
                 aux_enabled[mod] = False
                 batchnorm_enabled[mod] = False
+            
+            # Set the attributes for module-input layers.
             elif num_children == 0:
                 num_neurons = 1
                 activations[mod] = self.input_act
                 aux_enabled[mod] = False
                 batchnorm_enabled[mod] = False
+            
+            # Set the attributes for module layers.
             else:
+                # Set the number of neurons for the module layer from the 
+                # module_neurons_func.
                 num_neurons = set_module_neurons(
                         num_children, 
                         self.module_neurons_func)
                 activations[mod] = self.module_act
-                #modules.append(f"{mod}-aux") if self.aux else False
                 aux_enabled[mod] = True if self.aux else False
                 batchnorm_enabled[mod] = True if self.batchnorm else False
-
 
             self.module_children_num[mod] =  num_children 
             self.module_dimensions[mod] = num_neurons
         
-        # Get the number of incoming weights for each module
+        # Get the number of incoming weights for each module.
         for mod in self.dG.nodes():
+            
+            # If aux layers are enabled, the number of incoming weights are
+            # simply the number of children.
             if self.aux == True:
                 self.incoming_weights[mod] = self.module_children_num[mod]
+            
+            # If not, the number of incoming weights are equal to the total
+            # number of neurons assigned to each of the children.
             else:
                 iw = 0
                 for child in self.module_children[mod]:
                     iw += self.module_dimensions[child]
                 self.incoming_weights[mod] = iw
 
-
-            
-
-
-            
+        # Initialize a dataframe to record the attributes of each layer.
         self.network_dims = pd.DataFrame()
         self.network_dims["Module"] = self.module_order
         self.network_dims["Direct_children_num"] = self.network_dims["Module"].map(
@@ -263,12 +318,13 @@ class RestrictedNN(tf.keras.Model):
                 aux_enabled) 
         self.network_dims["Batchnorm"] = self.network_dims["Module"].map(
                 batchnorm_enabled) 
-
+        
+        print("Network dimensions")
         print(self.network_dims)
 
 
 
-    def build_input_layer(self):
+    def _build_input_layer(self):
         """ Construct the input layer for each input-connected module.
 
         The name of the input layer follows the form <module_name>_inp. The
@@ -282,9 +338,8 @@ class RestrictedNN(tf.keras.Model):
         activation is linear.
         """
         
-
+        # Initialize a dictionary to store the layers of the network.
         self.network_layers = {}
-        self.grad_masks = {}
         
         # Iterate through the modules that are directly mapped to inputs.
         for mod, input_set in self.term_direct_input_map.items():
@@ -297,41 +352,35 @@ class RestrictedNN(tf.keras.Model):
                 connections[id][j] = 1
                 j+=1
             
-            # The gradient mask for the input layer will be initially the same
-            # as the connections matrix.
-            input_layer_name = f"{mod}_inp"
-
-            # Initialize the RestrictedLayer with a kernel of 0's, then add it 
-            #to the input_layers dictionary.
-            self.network_layers[input_layer_name] = (RestrictedLayer(
+            # Initialize the RestrictedLayer with a kernel of zeros.
+            self.network_layers[f"{mod}_inp"] = (RestrictedLayer(
                     units=len(input_set),
                     connections=connections,
                     input_shape=(self.input_dim, ),
                     activation="linear",
                     pbias = 1.0,
                     use_bias=False,
-                    name=input_layer_name,
+                    name=f"{mod}_inp",
                 kernel_initializer=initializers.Zeros(),
                 kernel_regularizer=self.input_regularizer,
                 trainable=True))
 
 
 
-    def build_module_layers(self):
+    def _build_module_layers(self):
         """ Construct the layers for each module in the ontology.
 
         The module layer takes in a tensor output from a module_inp layer if 
         it is directly mapped to inputs, or it takes in a tensor that is
         created by concatenating the tensors output from all of the module's 
-        child modules. By default, the sigmoid activation is applied and a bias 
-        term is included. 
+        child modules.
         """
         
-        #self.module_layers = {}
-        #self.mod_layer_list = []   
+        # Obtain a dataframe of layers that are not module-input layers.
         self.module_dims = (
                 self.network_dims[self.network_dims["Direct_children_num"] != 0])
         
+        # Obatin the layer attributes of each module.
         for index, row in self.module_dims.iterrows():
             mod = row["Module"]
             children = row["Children"]
@@ -348,7 +397,7 @@ class RestrictedNN(tf.keras.Model):
                     connections=connections,
                     activation=activation, 
                     name=f"{mod}_mod",
-                    #pbias = 1.0,
+                    pbias = None,
                     use_bias=True,
                     kernel_initializer=self.initializer,
                     kernel_regularizer=self.module_regularizer)
@@ -372,66 +421,18 @@ class RestrictedNN(tf.keras.Model):
 
 
 
-    def construct_model(self, batch_train = True):
-        
-        output_map = {}
-        inputs = keras.Input(shape=(self.input_dim,))
-        for i, row in self.module_dims.iterrows():
-            print(row)
-            mod = row["Module"]
-            children = row["Children"]
-            aux_enabled = row["Aux_enabled"]
-            batchnorm = row["Batchnorm"]
-            input_list = []
-            
-            # Pass input tensors through input layers.
-            if mod in self.term_direct_input_map:
-                layer = self.network_layers[f"{mod}_inp"]
-                input_list.append(layer(inputs))
-            
-            # Concatenate the tensors that input to the module layer.
-            for child_mod in children:
-                if child_mod[0].islower():
-                    continue
-                input_list.append(output_map[child_mod])
-            input = tf.concat(input_list, 1)
-            
-            # Pass the concatenated inputs through the module layer.
-            layer = self.network_layers[f"{mod}_mod"]
-            output = layer(input)
-            
-            # Batchnormalize the output (if BATCHNORM).
-            if batchnorm:
-                #output = tf.reshape(output, [-1, 32])
-                #output = tf.reshape(output, output.shape)
-                #print(output.shape)
-                layer = self.network_layers[f"{mod}_batchnorm"]
-                layer.trainable = batch_train
-                output = layer(output)
-            
-            # Pass the output through an auxiliary layer (if AUX).
-            if aux_enabled:
-                layer = self.network_layers[f"{mod}_aux"]
-                output = layer(output)
-
-        
-            # Keep the output of each module in output_map.
-            output_map[mod] = output
-
-        test_model = keras.Model(inputs=inputs, outputs=output)
-        # Return the output from the root of the ontology.
-        self.test_model = test_model
-
-
-
-
-
-    
     def call(self, inputs, batch_train=True):
-                
+        
+        """Directly process a batch of inputs through the network.
+        
+        Parameters
+        ----------
+        batch_train : bool
+            Controls whether training is performed in batches.
+        """
+
         output_map = {}
         
-
         # Iterate through the modules of the ontology.
         for i, row in self.module_dims.iterrows():
             mod = row["Module"]
@@ -458,9 +459,6 @@ class RestrictedNN(tf.keras.Model):
             
             # Batchnormalize the output (if BATCHNORM).
             if batchnorm:
-                #output = tf.reshape(output, [-1, 32])
-                #output = tf.reshape(output, output.shape)
-                #print(output.shape)
                 layer = self.network_layers[f"{mod}_batchnorm"]
                 layer.trainable = batch_train
                 output = layer(output)
@@ -475,48 +473,4 @@ class RestrictedNN(tf.keras.Model):
         
         # Return the output from the root of the ontology.
         return(output_map[self.root])
-
-            
-        
-
-        
-        
-
-            
-
-            
-
-
-def save_model(filepath, model, model_rmse, rmse_threshold = 1):
-    """ Checks if model has converged to solution. Model is saved if it has."""
-    converge = False
-    if model_rmse <= rmse_threshold:
-        print("Model saved.")
-        converge = True
-        model.save(filepath)
-
-    return converge
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-
-
 
