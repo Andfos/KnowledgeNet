@@ -5,7 +5,7 @@ from tensorflow.keras import regularizers
 
 
 # General parameters
-EXPERIMENT_NAME = "CancerSpecific/LUAD"
+EXPERIMENT_NAME = "Restricted_top20"
 EXP_DIR = f"experiments/{EXPERIMENT_NAME}"
 RES_DIR = f"{EXP_DIR}/results"
 MODULE_FILE = "Data/modules.csv"
@@ -13,7 +13,7 @@ MODULE_FILE = "Data/modules.csv"
 CLASSIFICATION = True
 BUILD_MODE = False
 TEST_SIZE = 0.2
-INPUT_DIM = 307
+INPUT_DIM = 20
 
 # Saving parameters
 LOAD_MODEL = False
@@ -38,7 +38,7 @@ DATA_FILE = f"{EXP_DIR}/data/data.tsv"
 ###LOSS_FN = tf.keras.losses.BinaryCrossentropy()
 LOSS_FN = tf.keras.losses.CategoricalCrossentropy()
 
-OUTPUT_DIM = 2
+OUTPUT_DIM = 5
 OUTPUT_ACT = "softmax"
 MODULE_ACT = "tanh"
 INPUT_ACT = "linear"
@@ -55,7 +55,7 @@ BATCH_SIZE = 256
 RETRAIN = True
 RETRAIN_EPOCHS = 50
 INPUT_REG = regularizers.L2(0.0005)
-MODULE_REG = regularizers.L1(0.0005)
+MODULE_REG = regularizers.L2(0.0005)
 PRUNE_TRAIN_ITERATIONS = 20000
 UPDATE_ITERS = 20
 SHUFFLE_BUFFER_SIZE = 200
