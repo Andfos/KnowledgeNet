@@ -9,6 +9,7 @@ from plots import *
 from utils import *
 from math import *
 import keras.backend as K
+from sklearn.model_selection import train_test_split
 
 
 
@@ -153,6 +154,8 @@ if __name__ == "__main__":
     res_connections[-1, -1] = 1
     
 
+
+
     # Generate the data according to the user specified function.
     X, y = generate_data(
             func,
@@ -162,6 +165,16 @@ if __name__ == "__main__":
             lower=lower, 
             upper=upper)
 
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, 
+                                                        test_size=0.2,
+                                                        random_state=42)
+    
+
+    # Callbacks
+    monitor_val_accuracy = EarlyStopping(
+            monitor = "val_loss", patience = 1000, min_delta = 3)
+    callbacks = [monitor_val_accuracy]
 
     # Loop through many random weight initializations.
     for seed in range(0, 100):
@@ -181,13 +194,23 @@ if __name__ == "__main__":
 
         
         # Fit the model and evaluate it.
-        monitor_loss = EarlyStopping(
-                monitor = "loss", patience = 2500, min_delta = 2)
-        dense_history = dense_model.fit(X, y, epochs=10000, callbacks=[monitor_loss])
-        res_history = res_model.fit(X, y, epochs=10000, callbacks=[monitor_loss])
-        dense_rmse = round(sqrt(dense_model.evaluate(X, y)), 2)
-        res_rmse = round(sqrt(res_model.evaluate(X, y)), 2)
+        ##monitor_loss = EarlyStopping(
+        ##        monitor = "loss", patience = 2500, min_delta = 2)
+        dense_history = dense_model.fit(X_train, y_train, epochs=10000,
+                                        callbacks=callbacks,
+                                        validation_split=0.2)
+        res_history = res_model.fit(X_train, y_train, epochs=10000,
+                                    callbacks=callbacks, validation_split=0.2)
+        
 
+        dense_rmse = round(sqrt(dense_history.history["loss"][-1]), 2)
+        res_rmse = round(sqrt(res_history.history["loss"][-1]), 2)
+        dense_test_rmse = round(sqrt(dense_history.history["val_loss"][-1]), 2)
+        res_test_rmse = round(sqrt(res_history.history["val_loss"][-1]), 2)
+        dense_rmse = "  --Train--  " + str(dense_rmse) 
+        res_rmse = "  --Train--  " + str(res_rmse) 
+        dense_test_rmse = "  --Test--  " + str(dense_test_rmse) 
+        res_test_rmse = "  --Test--  " + str(res_test_rmse) 
 
 
 
@@ -196,18 +219,25 @@ if __name__ == "__main__":
         res_label = "Constrained Model: $L1_{5}^{tanh,bias}L2_{1}^{lin}$"
         title = "Approximation of $x_{1} \cdot x_{2} + x_{3}$"
         
-        if dense_rmse <= 100 or res_rmse <= 100:
-            plot_loss(
-                    f"Images/x1x2_x3/x1x2_x3-{seed}",
-                    title,
-                    Dense = [dense_history.history["loss"],
-                            "red",
-                            dense_label,
-                            dense_rmse],
-                    Res = [res_history.history["loss"],
-                            "blue",
-                            res_label,
-                            res_rmse])
+        plot_loss(
+                f"Images/x1x2_x3/x1x2_x3-{seed}",
+                title,
+                Dense = [dense_history.history["loss"],
+                        "red",
+                        dense_label,
+                        dense_rmse],
+                Dense_test = [dense_history.history["val_loss"],
+                        "orange",
+                        dense_label,
+                        dense_test_rmse],
+                Res = [res_history.history["loss"],
+                        "blue",
+                        res_label,
+                        res_rmse],
+                Res_test = [res_history.history["val_loss"],
+                        "green",
+                        res_label,
+                        res_test_rmse])
 
         
 

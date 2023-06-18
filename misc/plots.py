@@ -12,8 +12,28 @@ import statistics as stats
 
 
 
-def plot_preds(filepath, title, X, y, converge = True, **kwargs):
-    
+def plot_preds(filepath, title, label, X, y, **kwargs):
+    """ Plots predicted values against underlying function.
+
+    Params
+    ------
+    filepath : str
+        Path to save image file.
+    title : str
+        Title of the plot.
+    label : str
+        Label for the plot (shown in legend).
+    X : numpy.ndarray
+        The input features to the function.
+    y : numpy.ndarray
+        The noiseless output values of the function.
+    **kwargs : {}
+        Used to plot additional lines for predictions. Each key in kwargs 
+        refers to a new line to plot. Each key is mapped to a list with 
+        the following structure: [y_predictions, legend_label, color].
+    """
+
+    # Set the axes of the figure
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.spines['left'].set_position('center')
@@ -23,16 +43,17 @@ def plot_preds(filepath, title, X, y, converge = True, **kwargs):
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
 
-    # plot the function
-    plt.plot(X, y, 'r')
+    # plot the underlying function.
+    plt.plot(X, y, 'b')
     
-    # Plot the predictions
+    # Plot the predictions.
     for key, value in kwargs.items():
-        plt.plot(X, value[0], label = f"{value[2]}  {value[1]} rmse")
+        plt.plot(X, value[0], value[2], label = f"{value[1]}")
     plt.title(title)
-    plt.legend(loc = "upper right")
-    if converge == True:
-        plt.savefig(filepath)
+    ax.legend(
+            loc = "upper right", bbox_to_anchor=(0.9, 1), 
+            title = label, fancybox=True, framealpha=0.2)
+    plt.savefig(filepath)
 
 
 
@@ -48,7 +69,7 @@ def plot_loss(filepath, title, **kwargs):
         plt.plot(
             value[0], 
             color = value[1], 
-            label = "{}: {} rmse".format(value[2], value[3]))
+            label = f"{values[1]}")
 
     plt.title(title)
     plt.ylabel('Loss')

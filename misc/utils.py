@@ -1,3 +1,7 @@
+""" Utilities module for general-purpose helper functions.
+"""
+
+
 import sys
 from math import *
 import numpy as np
@@ -16,20 +20,31 @@ def generate_data(function,
     Manually generate the input and output data according to user-specified 
     functions.
 
-    Args:
-        function(str): String representation of the function to generate the
-                output given the inputs
-        noise_sd_func(str): String representation of the function to generate 
-                the random noise of the output.
-        data_size(int): Number of data points to generate (default 100)
-        input_dim(int): Number of input features (default 1)
-        lower(float): Lower bound on the input features domain.
-        upper(float): Upper bound on the input features domain.
+    Params
+    ------
+    function : str 
+        String representation of the function to generate the
+        output given the inputs.
+    noise_sd_func : str 
+        String representation of the function to generate 
+        the random noise of the output.
+    data_size : int 
+        Number of data points to generate (default 100).
+    input_dim : int
+        Number of input features (default 1)
+    lower : float 
+        Lower bound on the input features domain.
+    upper : float 
+        Upper bound on the input features domain.
 
-    Returns:
-        X(numpy.ndarray): Input features (bounded between lower and upper)
-        y(numpy.ndarray): Output (generated according to func and noise_sd_func)
+    Returns
+    -------
+    X : numpy.ndarray
+        Input features.
+    y : numpy.ndarray 
+        Output.
     """
+
     X = np.zeros(shape = (data_size, input_dim))
     y = np.zeros(shape = (data_size, 1))
 
