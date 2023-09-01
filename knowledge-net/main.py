@@ -1,5 +1,5 @@
 import shutil
-from config import *
+from parameters import *
 import pandas as pd
 import keras
 import sys 
@@ -21,8 +21,16 @@ import pickle
 import shap
 
 
+
+
+
+
+
+
 # Save the relevant data in the correct location
-shutil.copyfile("config.py", f"{RES_DIR}/config.py")
+shutil.copyfile("parameters.py", f"{RES_DIR}/parameters.py")
+
+
 
 # If running the function in BUILD_MODE, generate data according to user 
 # specified function.
@@ -101,6 +109,18 @@ model = KnowledgeNet(
         batchnorm=BATCHNORM) 
 
 
+#model.compile(optimizer=optimizer, loss=LOSS_FN)
+#history = model.fit(X_train, y_train, batch_size=64, epochs=200)
+#print(model)
+#raise
+#print(dir(model))
+#raise
+#model.construct_model()
+#model.test_model.compile(optimizer=optimizer, loss=LOSS_FN)
+#history = model.test_model.fit(X_train, y_train, batch_size=64, epochs=200, 
+#                    validation_split=0.2)
+
+
 if LOAD_MODEL:
     model.load_weights(f"{MODEL_SAVEDIR}/model")
     
@@ -108,6 +128,9 @@ if LOAD_MODEL:
 model.compile(optimizer=optimizer, loss=LOSS_FN)
 model.build(input_shape = (BATCH_SIZE, INPUT_DIM))
 model.summary()
+
+
+
 
 
 # Fit the model if not trained yet. Save it if it converges to solution.
@@ -118,6 +141,9 @@ if not LOAD_MODEL:
             train_epochs=TRAIN_EPOCHS, 
             optimizer=optimizer,
             classification=CLASSIFICATION)
+
+
+
 
 
 # Check the network structure.
@@ -172,6 +198,10 @@ onto_df = construct_ontology(
         module_file=MODULE_FILE)
 onto_df.to_csv(f"{RES_DIR}/Ontology_{base_savefile}.csv")
 
+#network_df = construct_network(
+#        model, model.dG, classes, title=f"Network:\t{base_title}", 
+#        module_file=MODULE_FILE)
+#network_df.to_csv(f"{RES_DIR}/Network_{base_savefile}.csv")
 
 
 if CLASSIFICATION:

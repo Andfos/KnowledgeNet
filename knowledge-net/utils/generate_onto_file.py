@@ -64,8 +64,6 @@ if __name__ == "__main__":
     # Load in the modules.csv file and the features.tsv file.
     out_file = feature_file.rsplit("/", 1)[0] + "/ontology.txt"
     modules_df = pd.read_csv(module_file)
-    
-
     features_df = pd.read_csv(feature_file, sep="\t")
 
     # Instantiate lists to record inputs, modules, and relations.
@@ -74,15 +72,14 @@ if __name__ == "__main__":
     relations = []
 
     # Iterate over every 
-
+    
     features = list(features_df["Feature"])
     all_features = list(modules_df["Feature"])
     all_features = [f.lower() for f in all_features]
     all_modules = list(modules_df["Module"])
 
     for inp in features:
-        
-        ind = all_features.index(inp)
+        ind = features.index(inp)
         mod = all_modules[ind]
         if unconstrain:
             modules.append("L1")
@@ -101,6 +98,8 @@ if __name__ == "__main__":
     # Add the relationships between lower-level modules and higher-level modules.
     mod_set = set(modules)
     
+    
+
     for l in range(2, num_hidden_layers + 1):
 
         # Add a relationship between each of the unique modules and the first
