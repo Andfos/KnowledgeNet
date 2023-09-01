@@ -22,9 +22,9 @@ exist in the regression example experiment.
 3. **Create a new file called** `features.tsv` **in the** `data` **directory**.
 The file should be structured as a two-column TSV file, with the first
 column titled `ID`, and the second column titled `Feature` (ensure first letter
-is capitalized). The `id` column
+is capitalized). The `Id` column
 should begin with `0` and continue until the number of features - 1. The
-`feature` column should contain the name of each feature used by the model. See
+`Feature` column should contain the name of each feature used by the model. See
 the `features.tsv` file within `tests/regression/data` folder for an example. 
 
 
