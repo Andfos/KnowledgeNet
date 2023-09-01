@@ -16,11 +16,11 @@ within the`tests` directory in the KnowledgeNet master folder. The absolute path
 to the folder is then `KnowledgeNet/tests/regression`. 
 
 2. **Within the experiment directory you just created, create two new
-   directories called** `data` **and** `results`.** These directories already
+   directories called** `data` **and** `results`. These directories already
 exist in the regression example experiment. 
 
 3. **Create a new file called** `features.tsv` **in the** `data` **directory**.
-`features.tsv` should be structured as a two-column TSV file, with the first
+The file should be structured as a two-column TSV file, with the first
 column titled `id`, and the second column titled `feature`. The `id` column
 should begin with `0` and continue until the number of features - 1. The
 `feature` column should contain the name of each feature used by the model. See
