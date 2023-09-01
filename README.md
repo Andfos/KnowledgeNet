@@ -7,15 +7,15 @@ Create sparse neural networks to be used as knowledge graphs
 ### Setup an experiment
 #### Setup the experiment directory
 
-1. Create a new directory with the name of the experiment to store the data 
-files and results of a particular experiment. We suggest doing this one level 
+1. **Create a new directory with the name of the experiment to store the data 
+files and results of the experiment**. We suggest doing this one level 
 up from the knowledge-net directory, but the choice of where to keep the 
 directory is irrelevant as long as the correct path is specified in the 
-`config.py` file. For example, we create a `directory` called `regression` 
+`config.py` file. For example, we create a directory called `regression` 
 within the`tests` directory in the KnowledgeNet master folder. The absolute path 
 to the folder is then `KnowledgeNet\tests\regression`. 
 
-2.
+2. 
 
 
 
