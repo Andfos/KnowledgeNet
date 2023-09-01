@@ -205,7 +205,7 @@ if __name__ == "__main__":
 
 
         # Plot the x1*x2 function approximation on a 3D plot.
-        if function == "x1*x2" and rmse <= 5.:
+        if function == "x1*x2" and rmse <= 500.:
             label = "$Model: L1_{4}^{tanh,bias}L2_1^{lin}$"
             
             # Generate 3D plot data

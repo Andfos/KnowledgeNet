@@ -33,12 +33,6 @@ from keras.layers import Input
 
 
 
-
-
-
-
-
-
 class RestrictedLayer(Dense):
     """Build a layer where a specific connections matrix can be applied.  
 
@@ -114,13 +108,6 @@ class RestrictedLayer(Dense):
             output = tf.math.add(self.pbias, output)
         
         return output
-
-
-
-
-
-
-
 
 
 
@@ -398,7 +385,7 @@ class KnowledgeNet(tf.keras.Model):
                     activation=activation, 
                     name=f"{mod}_mod",
                     pbias = None,
-                    use_bias=True,
+                    use_bias=False,
                     kernel_initializer=self.initializer,
                     kernel_regularizer=self.module_regularizer)
             

@@ -25,20 +25,32 @@ def generate_data(function,
     Manually generate the input and output data according to user-specified 
     functions.
 
-    Args:
-        function(str): String representation of the function to generate the
-                output given the inputs
-        noise_sd_func(str): String representation of the function to generate 
+    Parameters
+    ----------
+    function : str 
+        String representation of the function to generate the
+        output given the inputs.
+    noise_sd_func : str 
+        String representation of the function to generate 
                 the random noise of the output.
-        data_size(int): Number of data points to generate (default 100)
-        input_dim(int): Number of input features (default 1)
-        lower(float): Lower bound on the input features domain.
-        upper(float): Upper bound on the input features domain.
+    data_size : int
+        Number of data points to generate (default 100)
+    input_dim : int
+        Number of input features. Default is 1.
+    lower : float
+        Lower bound on the input features domain.
+    upper : float
+        Upper bound on the input features domain.
 
-    Returns:
-        X(numpy.ndarray): Input features (bounded between lower and upper)
-        y(numpy.ndarray): Output (generated according to func and noise_sd_func)
+    Returns
+    -------
+    X : numpy.ndarray
+        Input features (bounded between lower and upper).
+    y : numpy.ndarray
+        Output (generated according to func and noise_sd_func).
     """
+    
+    # Initialize placeholder arrays.
     X = np.zeros(shape = (data_size, input_dim))
     y = np.zeros(shape = (data_size, 1))
 
@@ -99,13 +111,18 @@ def load_mapping(mapping_file):
     """ 
     Input gene-id mapping file, return dictionary of gene-id mappings.
 
-    Args:
-        mapping_file(str): Path to the file mapping inputs to ids.
+    Parameters
+    ----------
+    mapping_file : str
+        Path to the file mapping inputs to ids.
 
-    Returns:
-        mapping(dict): Dictionary mapping inputs to their ids.
+    Reuturns
+    --------
+    mapping : dict
+        Dictionary mapping inputs to their ids.
     """
     
+    # Read in file and create mapping dictionary.
     mapping_df = pd.read_csv(mapping_file, sep="\t").iloc[:, 0:2]
     mapping = dict(zip(mapping_df.Feature, mapping_df.ID))
     
@@ -122,17 +139,24 @@ def load_ontology(file_name, input_id_map):
     it.
     
 
-    Args:
-        file_name(str): Path to the ontology file
-        input_id_map(dict): Dictionary containing input-id mapping
-
-    Returns:
-        G(nx.DiGraph): Directed graph representing the ontology
-        root(str): The root node of the ontology
-        module_size_map(dict): Dictionary containing total number of inputs 
-                annotated to a term (directly or indirectly)
-        module_direct_input_map(dict): Dictionary containing direct mapping 
-                between inputs and modules.
+    Parameters
+    ----------
+    file_name : str
+        Path to the ontology file.
+    input_id_map : dict
+        Dictionary containing input-id mapping
+    
+    Returns
+    -------
+    G : nx.DiGraph
+        Directed graph representing the ontology.
+    root : str
+        The root node of the ontology.
+    module_size_map : dict
+        Dictionary containing total number of inputs annotated to a term 
+        (directly or indirectly).
+    module_direct_input_map : dict
+        Dictionary containing direct mapping between inputs and modules.
     """
 
     # Initialize an empty directed graph and sets
@@ -160,7 +184,6 @@ def load_ontology(file_name, input_id_map):
             print(f"{child} is an input and should be lowercase.")
             sys.exit(1)
         
-
         # If mapping between two modules, add to directed graph.
         if relation == 'default':
             G.add_edge(parent, child)

@@ -5,8 +5,8 @@ from tensorflow.keras import regularizers
 
 
 # General parameters
-EXPERIMENT_NAME = "Restricted_top20"
-EXP_DIR = f"experiments/{EXPERIMENT_NAME}"
+EXPERIMENT_NAME = "../experiments/Top20/KN"
+EXP_DIR = f"../experiments/{EXPERIMENT_NAME}"
 RES_DIR = f"{EXP_DIR}/results"
 MODULE_FILE = "Data/modules.csv"
 #MODULE_FILE = None
