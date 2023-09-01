@@ -10,7 +10,7 @@ Welcome to KnowledgeNet's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-knowledge-net
+modules
 
 Indices and tables
 ==================
