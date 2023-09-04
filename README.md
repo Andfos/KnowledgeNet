@@ -26,6 +26,15 @@ should begin with `0` and continue until the number of features - 1. The
 `feature` column should contain the name of each feature used by the model. See
 the `features.tsv` file within `tests/regression/data` folder for an example. 
 
+4. **Create a new file called** `ontology.tsv` **in the** `data` **directory**. 
+The file should be structured as a three-column TSV file, with the first column 
+titled `parent`, the second column titled `child`, and the third column titled
+`relation`. Each line should enumerate 1 relationship between a parent module 
+and either a child module or a child feature. For example, condider the ontology 
+show in the figure below, where x1 and x2 are children of Mod1, x3 and x4 are 
+children of Mod2, and Mod2 and Mod3 are children of Pred (the final prediction).
+![Alt text](images/ontology_example.png "a title")
+
 
 
 
