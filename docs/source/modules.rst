@@ -4,4 +4,9 @@ knowledge-net
 .. toctree::
    :maxdepth: 4
 
-   knowledge-net
+   config
+   main
+   networks
+   plots
+   training
+   utils
