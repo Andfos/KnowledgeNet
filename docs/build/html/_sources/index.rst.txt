@@ -9,9 +9,11 @@ Welcome to KnowledgeNet's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+    
+   intro
+   modules
+   networks
 
-training
-modules
 
 Indices and tables
 ==================
