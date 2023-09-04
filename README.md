@@ -33,7 +33,7 @@ titled `parent`, the second column titled `child`, and the third column titled
 and either a child module or a child feature. For example, condider the ontology 
 show in the figure below, where x1 and x2 are children of Mod1, x3 and x4 are 
 children of Mod2, and Mod2 and Mod3 are children of Pred (the final prediction).
-![Alt text](images/ontology_example.png "a title")
+![Alt text](images/ontology_example.png width="250"/> "a title")
 
 
 
