@@ -37,12 +37,10 @@ children of Mod2, and Mod2 and Mod3 are children of Pred (the final prediction).
 
 
 <p align="center">
-    <img src="images/ontology_example.png" width="500"/>
+    <img src="images/ontology_example.png" width="400"/>
 </p>
 
-brah
-(images/ontology_example.png)
-
+5. Suck one.
 
 
 
