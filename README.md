@@ -35,7 +35,10 @@ show in the figure below, where x1 and x2 are children of Mod1, x3 and x4 are
 children of Mod2, and Mod2 and Mod3 are children of Pred (the final prediction).
 
 
-[<img src="images/ontology_example.png" width="500"/>](images/ontology_example.png)
+[
+<p align="center">
+    <img src="images/ontology_example.png" width="500"/>
+</p>](images/ontology_example.png)
 
 
 
