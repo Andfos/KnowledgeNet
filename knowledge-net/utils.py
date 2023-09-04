@@ -25,20 +25,31 @@ def generate_data(function,
     Manually generate the input and output data according to user-specified 
     functions.
 
-    Args:
-        function(str): String representation of the function to generate the
-                output given the inputs
-        noise_sd_func(str): String representation of the function to generate 
-                the random noise of the output.
-        data_size(int): Number of data points to generate (default 100)
-        input_dim(int): Number of input features (default 1)
-        lower(float): Lower bound on the input features domain.
-        upper(float): Upper bound on the input features domain.
+    Parameters
+    ----------
+    function : str
+        String representation of the function to generate the output given the 
+        inputs.
+    noise_sd_func : str
+        String representation of the function to generate the random noise of 
+        the output. Default is 0.
+    data_size : int
+        Number of data points to generate. Default is 100.
+    input_dim : int
+        Number of input features. Default is 1.
+    lower : float
+        Lower bound on the input features domain. Default is -10.
+    upper : float
+        Upper bound on the input features domain. Default is 10.
 
-    Returns:
-        X(numpy.ndarray): Input features (bounded between lower and upper)
-        y(numpy.ndarray): Output (generated according to func and noise_sd_func)
+    Returns
+    -------
+    X : numpy.ndarray
+        Randomly-generated input data (bounded between lower and upper).
+    y : numpy.ndarray
+        Output (generated according to func and noise_sd_func).
     """
+
     X = np.zeros(shape = (data_size, input_dim))
     y = np.zeros(shape = (data_size, 1))
 
@@ -46,7 +57,6 @@ def generate_data(function,
     for i in range(0, data_size):
         input_list = np.random.uniform(lower, upper, size = input_dim)
         
-
         try:
             # Generate output according to the user-specified function.
             math_funcs["x"] = input_list
@@ -64,7 +74,6 @@ def generate_data(function,
                   "function.")
             sys.exit()
 
-                
         X[i] = input_list
         y[i] = output
 
@@ -85,6 +94,7 @@ def set_module_neurons(n, dynamic_neurons_func):
     dynamic, where the number of neurons is a function of the number of inputs 
     to the layer.
     """
+   
     math_funcs["n"] = n
     mod_neurons = eval(dynamic_neurons_func, {"__builtins__":None}, math_funcs)
     
@@ -99,15 +109,19 @@ def load_mapping(mapping_file):
     """ 
     Input gene-id mapping file, return dictionary of gene-id mappings.
 
-    Args:
-        mapping_file(str): Path to the file mapping inputs to ids.
+    Parameters
+    ----------
+    mapping_file : str
+        Path to the file mapping inputs to ids.
 
-    Returns:
-        mapping(dict): Dictionary mapping inputs to their ids.
+    Returns
+    -------
+    mapping : dict
+        Dictionary mapping inputs to their ids.
     """
     
     mapping_df = pd.read_csv(mapping_file, sep="\t").iloc[:, 0:2]
-    mapping = dict(zip(mapping_df.Feature, mapping_df.ID))
+    mapping = dict(zip(mapping_df.feature, mapping_df.id))
     
     return mapping
 
@@ -122,17 +136,24 @@ def load_ontology(file_name, input_id_map):
     it.
     
 
-    Args:
-        file_name(str): Path to the ontology file
-        input_id_map(dict): Dictionary containing input-id mapping
+    Parameters
+    ----------
+    file_name : str
+        Path to the ontology file.
+    input_id_map : dict
+        Dictionary containing input-id mapping.
 
-    Returns:
-        G(nx.DiGraph): Directed graph representing the ontology
-        root(str): The root node of the ontology
-        module_size_map(dict): Dictionary containing total number of inputs 
-                annotated to a term (directly or indirectly)
-        module_direct_input_map(dict): Dictionary containing direct mapping 
-                between inputs and modules.
+    Returns
+    -------
+    G : nx.DiGraph
+        Directed graph representing the ontology.
+    root : str 
+        The root node of the ontology.
+    module_size_map : dict
+        Dictionary containing total number of inputs annotated to a term 
+        (directly or indirectly).
+    module_direct_input_map : dict
+        Dictionary containing direct mapping between inputs and modules.
     """
 
     # Initialize an empty directed graph and sets
@@ -144,6 +165,12 @@ def load_ontology(file_name, input_id_map):
     file_handle = open(file_name)
     for i, fline in enumerate(file_handle):
         line = fline.rstrip().split()
+        
+        # Skip the header.
+        if i == 0:
+            continue
+
+        # Retrieve the ontology terms from each line.
         parent = line[0]
         child = line[1]
         relation = line[2]
@@ -155,14 +182,13 @@ def load_ontology(file_name, input_id_map):
             print(f"Line {i} in {file_name} caused an error.\n\n{fline}")
             print(f"Characters {', '.join(disallowed)} not allowed in names.")
             sys.exit(1)
-        if relation != "default" and child[0].isupper():
+        if relation != "module" and child[0].isupper():
             print(f"Line {i} in {file_name} caused an error.\n\n{fline}")
             print(f"{child} is an input and should be lowercase.")
             sys.exit(1)
         
-
         # If mapping between two modules, add to directed graph.
-        if relation == 'default':
+        if relation == "module":
             G.add_edge(parent, child)
         
         # If mapping between inputs and a module...
@@ -218,12 +244,11 @@ def load_ontology(file_name, input_id_map):
     connected_subG_list = list(nxacc.connected_components(uG))
 
     if len(leaves) > 1:
-        print('There are more than 1 root of ontology. Please use only one root.')
+        print("There are more than 1 root of ontology. Please use only one root.")
         sys.exit(1)
     if len(connected_subG_list) > 1:
-        print('There are more than connected components. Please connect them.')
+        print("There are more than connected components. Please connect them.")
         sys.exit(1)
-
 
     root = leaves[0]
     return G, root, module_size_map, module_direct_input_map

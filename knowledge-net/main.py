@@ -1,5 +1,5 @@
 import shutil
-from parameters import *
+from config import *
 import pandas as pd
 import keras
 import sys 
@@ -28,9 +28,7 @@ import shap
 
 
 # Save the relevant data in the correct location
-shutil.copyfile("parameters.py", f"{RES_DIR}/parameters.py")
-
-
+shutil.copyfile("config.py", f"{RES_DIR}/config.py")
 
 # If running the function in BUILD_MODE, generate data according to user 
 # specified function.
@@ -74,9 +72,8 @@ train_dataset = train_dataset.batch(BATCH_SIZE)
 # Load the ontology.
 input_id_map = load_mapping(f"{EXP_DIR}/data/features.tsv")
 dG, root, term_size_map, term_direct_input_map = load_ontology(
-        f"{EXP_DIR}/Data/ontology.txt", 
+        f"{EXP_DIR}/data/ontology.tsv", 
         input_id_map)
-
 
 
 # Set the optimizer
@@ -109,18 +106,6 @@ model = KnowledgeNet(
         batchnorm=BATCHNORM) 
 
 
-#model.compile(optimizer=optimizer, loss=LOSS_FN)
-#history = model.fit(X_train, y_train, batch_size=64, epochs=200)
-#print(model)
-#raise
-#print(dir(model))
-#raise
-#model.construct_model()
-#model.test_model.compile(optimizer=optimizer, loss=LOSS_FN)
-#history = model.test_model.fit(X_train, y_train, batch_size=64, epochs=200, 
-#                    validation_split=0.2)
-
-
 if LOAD_MODEL:
     model.load_weights(f"{MODEL_SAVEDIR}/model")
     
@@ -128,9 +113,6 @@ if LOAD_MODEL:
 model.compile(optimizer=optimizer, loss=LOSS_FN)
 model.build(input_shape = (BATCH_SIZE, INPUT_DIM))
 model.summary()
-
-
-
 
 
 # Fit the model if not trained yet. Save it if it converges to solution.
@@ -141,9 +123,6 @@ if not LOAD_MODEL:
             train_epochs=TRAIN_EPOCHS, 
             optimizer=optimizer,
             classification=CLASSIFICATION)
-
-
-
 
 
 # Check the network structure.
@@ -186,17 +165,16 @@ base_savefile = (
         f".{test_metric_name}_{str(test_metric)}")
 
 # Write the ontology and network-graph to csv.
-
 base_title = (
         "Unpruned\t\t\t" + 
         f"{train_metric_name} : {str(train_metric)}\t\t\t" +                           
         f"{test_metric_name} : {str(test_metric)}")
 
 
-onto_df = construct_ontology(
-        dG, model.root, title=f"Ontology\t\t{base_title}",
-        module_file=MODULE_FILE)
-onto_df.to_csv(f"{RES_DIR}/Ontology_{base_savefile}.csv")
+#onto_df = construct_ontology(
+#        dG, model.root, title=f"Ontology\t\t{base_title}",
+#        module_file=MODULE_FILE)
+#onto_df.to_csv(f"{RES_DIR}/Ontology_{base_savefile}.csv")
 
 #network_df = construct_network(
 #        model, model.dG, classes, title=f"Network:\t{base_title}", 
@@ -387,10 +365,10 @@ for prune_train_iter in range(0, PRUNE_TRAIN_ITERATIONS):
         # Save the pruned ontology to csv file.
         sub_dG = dG_prune.subgraph(
                 nx.shortest_path(dG_prune.to_undirected(), model.root))
-        onto_df = construct_ontology(
-                sub_dG, model.root, title=f"Ontology\t\t{base_title}", 
-                module_file=MODULE_FILE)
-        onto_df.to_csv(f"{RES_DIR}/Ontology_{base_savefile}.csv")
+        #onto_df = construct_ontology(
+        #        sub_dG, model.root, title=f"Ontology\t\t{base_title}", 
+        #        module_file=MODULE_FILE)
+        #onto_df.to_csv(f"{RES_DIR}/Ontology_{base_savefile}.csv")
         
         # Save the pruned network-graph to csv file.
         network_df = construct_network(
