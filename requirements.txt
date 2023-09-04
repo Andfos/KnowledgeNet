@@ -1,2 +1,2 @@
-bluepy
 sphinx-rtd-theme
+sphinxcontrib-napoleon
