@@ -32,7 +32,7 @@ titled `parent`, the second column titled `child`, and the third column titled
 `relation`. Each line should enumerate 1 relationship between a parent module 
 and either a child module or a child feature. For example, condider the ontology 
 show in the figure below, where x1 and x2 are children of Mod1, x3 and x4 are 
-children of Mod2, and Mod2 and Mod3 are children of Pred (the final prediction).
+children of Mod2, and Mod1 and Mod2 are children of Pred (the final prediction).
 
 
 
@@ -40,6 +40,20 @@ children of Mod2, and Mod2 and Mod3 are children of Pred (the final prediction).
     <img src="images/ontology_example.png" width="400"/>
 </p>
 
+
+The `ontology.tsv` file should then look like the following:
+
+    parent  child   relation
+    Pred    Mod1    module
+    Pred    Mod2    module
+    Mod1    x1      input
+    Mod1    x2      input
+    Mod2    x3      input
+    Mod2    x4      input
+
+This file has already been created for you in `tests/regression/data`. See it 
+for an additional example. Alternatively, this file can be created automatically
+based on a `modules.csv` file (see below).
 5. Suck one.
 
 
