@@ -10,6 +10,7 @@ Welcome to KnowledgeNet's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+training
 modules
 
 Indices and tables
