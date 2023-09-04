@@ -2,12 +2,11 @@ import sys
 from math import *
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 import networkx as nx
 import networkx.algorithms.components.connected as nxacc
 import networkx.algorithms.dag as nxadag
-import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+#import matplotlib.pyplot as plt
+#from sklearn.model_selection import train_test_split
 
 
 
@@ -295,85 +294,6 @@ def build_meta_ontology(infile, outfile, module_file = None):
 
 
 
-
-
-
-
-
-
-def debugger(mode, run_debugger = True, **kwargs):
-
-    if mode == "input_layer" and run_debugger == True:
-        var_name = kwargs["var_name"]
-        init_val = kwargs["init_val"]
-        lr = kwargs["lr"]
-        dW = kwargs["dW"]
-        temp_val = kwargs["temp_val"]
-
-        print(f"\nUpdating {var_name}...\n")
-        new_var = init_val - lr*dW
-        print("Initial weights - (lr * gradient) = New weights")
-        for b in range(len(init_val)):
-            print(f"{init_val[b]}\t-\t{lr} * {dW[b]}\t=\t{temp_val[b]}\n")
-        print("\n")            
-
-    # Debugging for proximal L0 (penalties.py)
-    if mode == "L0" and run_debugger == True:
-        alpha_abs = kwargs["alpha_abs"]
-        theta = kwargs["theta"]
-        alpha_new = kwargs["alpha_new"]
-
-        alpha_array = np.array(alpha_abs.numpy())
-        print("Abs(Weights) <> Theta = New weights")
-        for b in range(len(alpha_array)):
-            print(f"{alpha_abs[b]}\t>\t{theta}\t=\t{alpha_new[b]}\n")
-        print("\n\n")
-
-    # Debugging for weight updates between the input layer and a module layer
-    # directly mapped to an input layer.
-    if mode == "module_layer" and run_debugger == True:
-        child_name = kwargs["child_name"]
-        mod_name = kwargs["mod_name"]
-        init_weights = kwargs["init_weights"]
-        lr = kwargs["lr"]
-        dW = kwargs["dW"]
-        temp_weights = kwargs["temp_weights"]
-
-
-        
-        print(f"\nUpdating weights from {child_name} that feed ", 
-              f"into {mod_name}...\n")
-        
-        print("Initial weights - (lr * gradient) = New weights")
-        
-        if init_weights.ndim > 1:
-            for a in range(len(init_weights)):
-                print(f"{init_weights[a]}\t-\t{lr} * {dW[a]}\t=\t{temp_weights[a]}")
-            print("\n")            
-        
-        else:
-            print(f"{init_weights}\t-\t{lr} * {dW}\t=\t{temp_weights}")
-            print("\n")            
-    
-    if mode == "group_lasso" and run_debugger == True:
-        alpha = kwargs["alpha"]
-        alpha_norm = kwargs["alpha_norm"]
-        c = kwargs["c"]
-        alpha_new = kwargs["alpha_new"]
-
-    
-        print("If matrix norm < c, matrix --> 0")
-        print("Otherwise, matrix --> (matrix / matrix_norm) * (matrix_norm - c)")
-
-        print(f"Matrix norm: {alpha_norm} <> C: {c}")
-
-        if alpha.ndim > 1:
-            for b in range(len(alpha)):
-                print(f"{alpha[b]}\t-->\t{alpha_new[b]}")
-            print("\n\n")
-        else:
-            print(f"{alpha}\t-->\t{alpha_new}")
-            print("\n\n")
 
 
 
