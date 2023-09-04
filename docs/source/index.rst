@@ -11,6 +11,9 @@ Welcome to KnowledgeNet's documentation!
    :caption: Contents:
     
    intro
+   modules
+   networks
+
 
 Indices and tables
 ==================
