@@ -1,7 +1,7 @@
 
 """Generate Ontology File
 
-This script will use the modules.csv file and the inputId.txt file to generate 
+This script will use the modules.csv file and the features.txt file to generate 
 the ontology.txt file showing the relationships between inputs and modules.
 """
 

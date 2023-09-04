@@ -344,19 +344,20 @@ def cm_analysis(y_true, y_pred, filename, labels,
     """
     Generate matrix plot of confusion matrix with pretty annotations.
     The plot image is saved to disk.
-    args: 
-      y_true:    true label of the data, with shape (nsamples,)
-      y_pred:    prediction of the data, with shape (nsamples,)
-      filename:  filename of figure file to save
-      labels:    string array, name the order of class labels in the confusion matrix.
+    
+    Parameters
+    ----------
+    y_true : True label of the data, with shape (nsamples,).
+    y_pred : Prediction of the data, with shape (nsamples,).
+    filename :  Filename of figure file to save.
+    labels:    string array, name the order of class labels in the confusion matrix.
                  use `clf.classes_` if using scikit-learn models.
                  with shape (nclass,).
-      ymap:      dict: any -> string, length == nclass.
+    ymap:      dict: any -> string, length == nclass.
                  if not None, map the labels & ys to more understandable strings.
                  Caution: original y_true, y_pred and labels must align.
-      figsize:   the size of the figure plotted.
+    figsize:   the size of the figure plotted.
     """
-
 
     y_pred = [np.argmax(elem) for elem in y_pred]
     y_true = [np.argmax(elem) for elem in y_true]

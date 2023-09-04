@@ -5,24 +5,24 @@ from tensorflow.keras import regularizers
 
 
 # General parameters
-EXPERIMENT_NAME = "Restricted_top20"
-EXP_DIR = f"experiments/{EXPERIMENT_NAME}"
+EXPERIMENT_NAME = "regression"
+EXP_DIR = f"../tests/{EXPERIMENT_NAME}"
 RES_DIR = f"{EXP_DIR}/results"
-MODULE_FILE = "Data/modules.csv"
+MODULE_FILE = "data/modules.csv"
 #MODULE_FILE = None
-CLASSIFICATION = True
-BUILD_MODE = False
+CLASSIFICATION = False
+BUILD_MODE = True
 TEST_SIZE = 0.2
-INPUT_DIM = 20
+INPUT_DIM = 10
 
 # Saving parameters
 LOAD_MODEL = False
 SAVE_MODEL = False
-MODEL_LOADDIR = f"{EXP_DIR}/Models/Model_1"
-MODEL_SAVEDIR = f"{EXP_DIR}/Models/Model_1"
+MODEL_LOADDIR = f"{EXP_DIR}/models/Model_1"
+MODEL_SAVEDIR = f"{EXP_DIR}/models/Model_1"
 
 # BUILD_MODE parameters (if BUILD_MODE is True)
-FUNC = "x[0]**2 + sqrt(abs(x[1])) + 2*x[2] - 3*x[3] + x[8] * x[9]"
+FUNC = "x[0]**2 + 2*x[2] - 3*x[3] + x[8] * x[9]"
 #FUNC = "x[1] + 2*x[2] - 3*x[3]"
 NOISE_SD = "0"
 DATA_SIZE = 1000
@@ -34,12 +34,12 @@ UPPER = 10
 DATA_FILE = f"{EXP_DIR}/data/data.tsv"
 
 # Model parameters (Architecture)
-###LOSS_FN = tf.keras.losses.MeanSquaredError()
+LOSS_FN = tf.keras.losses.MeanSquaredError()
 ###LOSS_FN = tf.keras.losses.BinaryCrossentropy()
-LOSS_FN = tf.keras.losses.CategoricalCrossentropy()
+###LOSS_FN = tf.keras.losses.CategoricalCrossentropy()
 
-OUTPUT_DIM = 5
-OUTPUT_ACT = "softmax"
+OUTPUT_DIM = 1
+OUTPUT_ACT = "linear"
 MODULE_ACT = "tanh"
 INPUT_ACT = "linear"
 AUX_ACT = "linear"
@@ -50,13 +50,13 @@ WEIGHTS_INIT = initializers.GlorotUniform()
 
 
 # Model parameters (Training and Regularization)
-TRAIN_EPOCHS = 100
-BATCH_SIZE = 256
+TRAIN_EPOCHS = 3000
+BATCH_SIZE = 800
 RETRAIN = True
 RETRAIN_EPOCHS = 50
 INPUT_REG = regularizers.L2(0.0005)
 MODULE_REG = regularizers.L2(0.0005)
-PRUNE_TRAIN_ITERATIONS = 20000
+PRUNE_TRAIN_ITERATIONS = 2
 UPDATE_ITERS = 20
 SHUFFLE_BUFFER_SIZE = 200
 
