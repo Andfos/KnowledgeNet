@@ -8,7 +8,9 @@ import datetime
 import tensorflow as tf
 import numpy as np
 from keras.utils import np_utils
-from utils import *
+#from utils import *
+from utils import (generate_data, load_mapping, load_ontology,
+build_meta_ontology)
 from networks import KnowledgeNet
 from training import (
         get_loss, train_network, prune_network, check_network, get_accuracy)
@@ -18,7 +20,7 @@ import math
 from tensorflow.keras import regularizers 
 from sklearn import preprocessing
 import pickle
-import shap
+#import shap
 
 
 
