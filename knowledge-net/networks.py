@@ -128,6 +128,8 @@ class KnowledgeNet(tf.keras.Model):
     """ 
     Creates a neural network where connections between modules can be specified.
 
+    Attributes
+    ----------
         
 
 
@@ -151,7 +153,7 @@ class KnowledgeNet(tf.keras.Model):
                  loss_fn,
                  aux=False, 
                  batchnorm=True):
-        """Initialize a Restricted Neural Network
+        """Initialize a Restricted Neural Network.
 
         Parameters
         ----------

@@ -258,6 +258,29 @@ def get_loss(model, y_true, y_pred, reg_penalty=True):
 
 
 def get_accuracy(model, truth, preds):
+    """
+    Calculate the accuracy of model predictions.
+
+    This function computes the accuracy of a machine learning model's predictions
+    given the ground truth labels. It is designed to handle both softmax and
+    sigmoid output activations.
+
+    Parameters
+    ----------
+    model : tf.keras.Model 
+        An instance of your machine learning model class.
+    truth : tf.Tensor
+        An tensor containing the ground truth labels.
+    preds : tf.Tensor
+        An tensor containing the model's predictions.
+
+    Returns
+    -------
+    accuracy : float
+        The accuracy of the model's predictions, represented as a decimal value
+        between 0.0 and 1.0.
+    """
+
     preds = np.array(tf.squeeze(preds))
     truth = np.array(truth)
     
@@ -265,40 +288,15 @@ def get_accuracy(model, truth, preds):
     if model.output_act == "softmax":
         bin_preds = [np.argmax(elem) for elem in preds]
         truth = np.array([np.argmax(elem) for elem in truth])
+    
     # Reformat predictions from a sigmoid output
     if model.output_act == "sigmoid":
         bin_preds = [0 if elem < 0.5 else 1 for elem in preds]
-    
     
     correct = (truth == bin_preds)
     accuracy = correct.sum() / correct.size
 
     return accuracy
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
