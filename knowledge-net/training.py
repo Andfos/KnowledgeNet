@@ -303,8 +303,37 @@ def get_accuracy(model, truth, preds):
 
 
 
-def train_network(model, train_dataset,
-                  train_epochs, optimizer, classification=True):
+def train_network(
+        model, train_dataset,
+        train_epochs, optimizer, classification=True):
+    """
+    Train a machine learning model using a given dataset and optimizer.
+
+    This function performs model training for a specified number of epochs using
+    the provided training dataset and optimizer. It includes forward and backward
+    passes, gradient computation, weight updates, and optional accuracy monitoring
+    for classification tasks.
+
+    Parameters
+    ----------
+    model : tf.keras.Model
+        The machine learning model to be trained.
+    train_dataset : tf.data.Dataset
+        The training dataset, typically created using TensorFlow data pipeline
+        utilities.
+    train_epochs : int
+        The number of training epochs (complete passes through the training dataset).
+    optimizer : tf.keras.optimizers.Optimizer
+        The optimization algorithm used for weight updates during training.
+    classification : bool, optional
+        A flag indicating whether the task is classification (True) or not (False).
+        If True (default), the function monitors and prints accuracy during training.
+
+    Returns
+    -------
+    model : tf.keras.Model
+        The trained machine learning model.
+    """
     
     # Iterate for a number of training epochs.
     for epoch in range(train_epochs):
@@ -479,10 +508,6 @@ def prune_network(model, X, y, train_dataset, prune_epochs,
                 grads = tape.gradient(loss, trainable_vars)
             del tape
             
-
-
-
-            #optimizer.apply_gradients(zip(grads, model.trainable_variables))
             old_parameters = [tf.stop_gradient(p) for p in model.trainable_variables]
             
             # Iterate over the trainable variables.
@@ -493,11 +518,6 @@ def prune_network(model, X, y, train_dataset, prune_epochs,
                 layer_name = var.name.split("/")[0]
                                 
                 fy = tf.constant(tf.stop_gradient(loss))
-                
-
-
-
-
 
                 with tf.GradientTape() as tape:
                     tape.reset()
@@ -505,8 +525,6 @@ def prune_network(model, X, y, train_dataset, prune_epochs,
                     loss = get_loss(model, model(X), y, reg_penalty=True)
                     grad = tape.gradient(loss, var)
                 del tape
-                
-
 
                 L = 1
                 for k in range(150):
@@ -532,13 +550,8 @@ def prune_network(model, X, y, train_dataset, prune_epochs,
                         loss = get_loss(model, model(X), y, reg_penalty=True)
                     del tape
                     
-                    #print(k)
-                    #print(var.name)
                     if loss <= Q_L:
-                        #print(f"loss: {loss}")
                         break
                     L = 1.1*L
 
-                
-            #print(model.get_weights())        
 

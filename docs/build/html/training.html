@@ -209,7 +209,31 @@ zeros (controlled by lamb2) or some zeros (controlled by eta2).</p></li>
 <dl class="py function">
 <dt class="sig sig-object py" id="training.train_network">
 <span class="sig-prename descclassname"><span class="pre">training.</span></span><span class="sig-name descname"><span class="pre">train_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_epochs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classification</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#training.train_network" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Train a machine learning model using a given dataset and optimizer.</p>
+<p>This function performs model training for a specified number of epochs using
+the provided training dataset and optimizer. It includes forward and backward
+passes, gradient computation, weight updates, and optional accuracy monitoring
+for classification tasks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>tf.keras.Model</em>) – The machine learning model to be trained.</p></li>
+<li><p><strong>train_dataset</strong> (<em>tf.data.Dataset</em>) – The training dataset, typically created using TensorFlow data pipeline
+utilities.</p></li>
+<li><p><strong>train_epochs</strong> (<em>int</em>) – The number of training epochs (complete passes through the training dataset).</p></li>
+<li><p><strong>optimizer</strong> (<em>tf.keras.optimizers.Optimizer</em>) – The optimization algorithm used for weight updates during training.</p></li>
+<li><p><strong>classification</strong> (<em>bool</em><em>, </em><em>optional</em>) – A flag indicating whether the task is classification (True) or not (False).
+If True (default), the function monitors and prints accuracy during training.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>model</strong> – The trained machine learning model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tf.keras.Model</p>
+</dd>
+</dl>
+</dd></dl>
 
 </section>
 
