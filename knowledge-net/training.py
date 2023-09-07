@@ -21,6 +21,46 @@ np.set_printoptions(suppress=True)
 
 
 def sparse_group_lasso(w, lamb1, eta1, lamb2, eta2):
+    """
+    Apply Sparse Group Lasso regularization to a given weight matrix.
+
+    This function updates the input weight matrix 'w' by inducing sparsity
+    both within columns and within rows based on specified regularization
+    parameters (lamb1, eta1, lamb2, eta2). It can be used to enforce group
+    sparsity within columns (features) and rows (samples) while preserving
+    the structure of the original matrix.
+    
+    Parameters
+    ----------
+    w : tf.Tensor
+        The input weight matrix to be regularized.
+    lamb1 : float
+        The group lasso regularization strength for inducing sparsity of 
+        columns.
+    eta1 : float
+        The l0 penalty applied to induce sparsity within columns.
+    lamb2 : float
+        The group lasso regularization strength for inducing sparsity of 
+        rows.
+    eta2 : float
+        The l0 penalty applied to induce sparsity within rows.
+
+    Returns
+    -------
+    tf.Tensor
+        The updated weight matrix after applying Sparse Group Lasso regularization.
+
+    Examples
+    --------
+    >>> import tensorflow as tf
+    >>> w = tf.constant([[1., 2., 3.], [4., 5., 6.]], dtype=tf.float32)
+    >>> lamb1 = 0.1
+    >>> eta1 = 0.01
+    >>> lamb2 = 0.05
+    >>> eta2 = 0.005
+    >>> updated_w = sparse_group_lasso(w, lamb1, eta1, lamb2, eta2)
+
+    """
     
     #w = tf.constant([[1.,2.,3.], [4.,5.,6.]], dtype=tf.float32)
     w = w.numpy()
