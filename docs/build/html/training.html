@@ -118,9 +118,7 @@
 <dd><p>Apply Sparse Group Lasso regularization to a given weight matrix.</p>
 <p>This function updates the input weight matrix ‘w’ by inducing sparsity
 both within columns and within rows based on specified regularization
-parameters (lamb1, eta1, lamb2, eta2). It can be used to enforce group
-sparsity within columns (features) and rows (samples) while preserving
-the structure of the original matrix.</p>
+parameters (lamb1, eta1, lamb2, eta2).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -138,6 +136,19 @@ rows.</p></li>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tf.Tensor</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>This function considers two types of regularization:</dt><dd><ol class="arabic simple">
+<li><p>Column sparsity: Each column is the set of all weights incoming to a
+neuron. It encourages certain columns to contain
+all zeros (controlled by lamb1) or some zeros (controlled by
+eta1).</p></li>
+<li><p>Row sparsity: Each row is the set of all weights outgoing from a
+neuron. It encourages certain rows to contain all
+zeros (controlled by lamb2) or some zeros (controlled by eta2).</p></li>
+</ol>
 </dd>
 </dl>
 <p class="rubric">Examples</p>

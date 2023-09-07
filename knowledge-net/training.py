@@ -11,9 +11,6 @@ from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
 import re
 
-np.set_printoptions(suppress=True)
-
-
 
 
 
@@ -26,9 +23,7 @@ def sparse_group_lasso(w, lamb1, eta1, lamb2, eta2):
 
     This function updates the input weight matrix 'w' by inducing sparsity
     both within columns and within rows based on specified regularization
-    parameters (lamb1, eta1, lamb2, eta2). It can be used to enforce group
-    sparsity within columns (features) and rows (samples) while preserving
-    the structure of the original matrix.
+    parameters (lamb1, eta1, lamb2, eta2).
     
     Parameters
     ----------
@@ -50,6 +45,17 @@ def sparse_group_lasso(w, lamb1, eta1, lamb2, eta2):
     tf.Tensor
         The updated weight matrix after applying Sparse Group Lasso regularization.
 
+    Notes
+    -----
+    This function considers two types of regularization:
+      1. Column sparsity: Each column is the set of all weights incoming to a 
+         neuron. It encourages certain columns to contain
+         all zeros (controlled by lamb1) or some zeros (controlled by 
+         eta1).
+      2. Row sparsity: Each row is the set of all weights outgoing from a
+         neuron. It encourages certain rows to contain all
+         zeros (controlled by lamb2) or some zeros (controlled by eta2).
+
     Examples
     --------
     >>> import tensorflow as tf
@@ -62,7 +68,6 @@ def sparse_group_lasso(w, lamb1, eta1, lamb2, eta2):
 
     """
     
-    #w = tf.constant([[1.,2.,3.], [4.,5.,6.]], dtype=tf.float32)
     w = w.numpy()
     S = tf.zeros_like(w).numpy()       
     lamb = max(lamb1, lamb2)
