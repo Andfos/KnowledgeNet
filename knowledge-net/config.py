@@ -1,8 +1,37 @@
+"""
+This configuration module is used for setting environment variables 
+for a particular KnowledgeNet experiment. This module is imported into 
+``main.py``, allowing the script to use the variables specified herein. 
+Alternatively, this module can be imported into a jupyter notebook or 
+user-created script.
+"""
+
 import tensorflow as tf
 from tensorflow.keras import initializers
-from tensorflow.keras import regularizers 
+from tensorflow.keras import regularizers
 
+"""
+General Parameters
+------------------
 
+EXPERIMENT_NAME : str
+    The name of the experiment. This should be the same name as the name of the
+    parent directory that will host the data and results files of the
+    experiment. Default is 'regression'.
+MODULE_FILE : str
+    This should specify the path to the file containing the relationships 
+    between inputs and modules, or child modules and parent modules. Note: This
+    is different than the ontology file.
+CLASSIFICAION : bool
+    Specify whether the experiment is one of classification. Default is `False`.
+BUILD_MODE : bool
+    Specify whether experiment data will be built on the fly from a user 
+    defined function, rather than pulled from a data file.
+TEST_SIZE : float
+    Specify the ratio of test set size to training set size.
+INPUT_DIM : int
+    Specify the total number of features used by the model. 
+"""
 
 # General parameters
 EXPERIMENT_NAME = "regression"
@@ -14,6 +43,17 @@ CLASSIFICATION = False
 BUILD_MODE = True
 TEST_SIZE = 0.2
 INPUT_DIM = 10
+
+
+"""
+Saving Parameters
+-----------------
+LOAD_MODEL : bool
+    Specify whether the model will be loaded from a saved file. Default is
+    `False`.
+"""
+
+
 
 # Saving parameters
 LOAD_MODEL = False
