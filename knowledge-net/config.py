@@ -51,9 +51,10 @@ Saving Parameters
 LOAD_MODEL : bool
     Specify whether the model will be loaded from a saved file. Default is
     `False`.
+SAVE_MODEL : bool
+    Specify whether the model should be saved. Default is
+    `False`.
 """
-
-
 
 # Saving parameters
 LOAD_MODEL = False
