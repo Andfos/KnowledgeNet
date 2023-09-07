@@ -12,7 +12,6 @@ Welcome to KnowledgeNet's documentation!
     
    intro
    modules
-   networks
 
 
 Indices and tables
