@@ -115,7 +115,42 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="training.sparse_group_lasso">
 <span class="sig-prename descclassname"><span class="pre">training.</span></span><span class="sig-name descname"><span class="pre">sparse_group_lasso</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">w</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eta2</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#training.sparse_group_lasso" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Apply Sparse Group Lasso regularization to a given weight matrix.</p>
+<p>This function updates the input weight matrix ‘w’ by inducing sparsity
+both within columns and within rows based on specified regularization
+parameters (lamb1, eta1, lamb2, eta2). It can be used to enforce group
+sparsity within columns (features) and rows (samples) while preserving
+the structure of the original matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>w</strong> (<em>tf.Tensor</em>) – The input weight matrix to be regularized.</p></li>
+<li><p><strong>lamb1</strong> (<em>float</em>) – The group lasso regularization strength for inducing sparsity of
+columns.</p></li>
+<li><p><strong>eta1</strong> (<em>float</em>) – The l0 penalty applied to induce sparsity within columns.</p></li>
+<li><p><strong>lamb2</strong> (<em>float</em>) – The group lasso regularization strength for inducing sparsity of
+rows.</p></li>
+<li><p><strong>eta2</strong> (<em>float</em>) – The l0 penalty applied to induce sparsity within rows.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The updated weight matrix after applying Sparse Group Lasso regularization.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tf.Tensor</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">w</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">],</span> <span class="p">[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lamb1</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eta1</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lamb2</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">eta2</span> <span class="o">=</span> <span class="mf">0.005</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">updated_w</span> <span class="o">=</span> <span class="n">sparse_group_lasso</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">lamb1</span><span class="p">,</span> <span class="n">eta1</span><span class="p">,</span> <span class="n">lamb2</span><span class="p">,</span> <span class="n">eta2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="training.train_network">
