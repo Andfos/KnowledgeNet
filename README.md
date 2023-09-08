@@ -1,6 +1,6 @@
 Introduction
 ============
-*KnowledgeNet* is a eXplainable AI (XAI) framework intended to aid in the creation 
+***KnowledgeNet*** is a eXplainable AI (XAI) framework intended to aid in the creation 
 and pruning of Visible Neural Networks (VNNs). *KnowledgeNet* allows for the 
 embedding of any hierarchical system within the architecture of a neural network. 
 An iterative training and pruning algorithm allows the user to sparsify the 
