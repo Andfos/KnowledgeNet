@@ -16,24 +16,24 @@ Dependencies:
 """
 
 import tensorflow as tf
-import keras.layers
-from tensorflow import keras
-from tensorflow.keras import initializers
-import numpy as np
-import keras.backend as K
-from tensorflow.keras import layers
-from keras.layers import (
-        Dense, Layer, Input, Concatenate, Add, BatchNormalization, Dropout)
-from keras.models import Sequential
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import BatchNormalization, LayerNormalization
-from tensorflow.keras import initializers
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras.models import Model
-from utils import set_module_neurons
-from tensorflow.keras import regularizers 
 import pandas as pd
-from keras.layers import Input
+import numpy as np
+from tensorflow.keras import initializers
+import keras.backend as K
+from tensorflow.keras.layers import Dense, BatchNormalization
+from utils import set_module_neurons
+
+
+#import keras.layers
+#from tensorflow import keras
+#from tensorflow.keras import layers
+#from keras.layers import (
+#        Dense, Layer, Input, Concatenate, Add, BatchNormalization, Dropout)
+#from keras.models import Sequential
+#from tensorflow.keras.callbacks import EarlyStopping
+#from tensorflow.keras.layers import BatchNormalization, LayerNormalization
+#from tensorflow.keras.models import Model
+#from tensorflow.keras import regularizers 
 
 
 
@@ -463,15 +463,14 @@ class KnowledgeNet(tf.keras.Model):
 
 
 
-    def call(self, inputs, batch_train=True):
-        
+    def call(self, inputs):
         """
-        Directly process a batch of inputs through the network.
+        Directly process a batch of data through the network.
         
         Parameters
         ----------
-        batch_train : bool
-            Controls whether training is performed in batches.
+        batch : tf.Tensor
+            Batch of data of shape (<batch_size>, <input_dim>).
         """
 
         output_map = {}
@@ -487,7 +486,7 @@ class KnowledgeNet(tf.keras.Model):
             # Pass input tensors through input layers.
             if mod in self.term_direct_input_map:
                 layer = self.network_layers[f"{mod}_inp"]
-                input_list.append(layer(inputs))
+                input_list.append(layer(batch))
             
             # Concatenate the tensors that input to the module layer.
             for child_mod in children:
@@ -503,7 +502,7 @@ class KnowledgeNet(tf.keras.Model):
             # Batchnormalize the output (if BATCHNORM).
             if batchnorm:
                 layer = self.network_layers[f"{mod}_batchnorm"]
-                layer.trainable = batch_train
+                layer.trainable = True
                 output = layer(output)
             
             # Pass the output through an auxiliary layer (if AUX).
