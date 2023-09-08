@@ -403,7 +403,6 @@ def check_network(model, dG_init, drop_cols):
         
         # If the AUX layer contains only 0s, remove the module from the
         # ontology.
-
         if "aux" in var.name:
             all_connects.extend(connections.numpy().flatten())
             if nonzero == 0:
@@ -433,6 +432,7 @@ def check_network(model, dG_init, drop_cols):
                         update = True
                     except:
                         nx.NetworkXError
+    
         # Deal with the module layers
         if layer_type == "mod":
 
@@ -460,23 +460,6 @@ def check_network(model, dG_init, drop_cols):
                         nx.NetworkXError
                 start_index += child_neuron_num
 
-            """
-            for child_mask, child in zip(connections, children[0]):
-                print(var.name)
-                print(child_mask)
-                print(children)
-                raise
-
-                nonzero = tf.math.count_nonzero(child_mask)
-                if nonzero == 0:
-                    drop_cols[mod].append(child) 
-                    drop_cols[mod] = list(set(drop_cols[mod]))
-                    try:
-                        dG_prune.remove_edge(mod, child)
-                        update = True
-                    except:
-                        nx.NetworkXError"""
-
     all_connects = [int(num) for num in all_connects]
     zeros = all_connects.count(0)
     sparsity = round((zeros / len(all_connects) * 100), 2)
@@ -489,8 +472,44 @@ def check_network(model, dG_init, drop_cols):
 
 
 
-def prune_network(model, X, y, train_dataset, prune_epochs, 
-                  optimizer, gl_pen1, l0_pen1, gl_pen2, l0_pen2):
+def prune_network(
+        model, X, y, train_dataset, prune_epochs, 
+        optimizer, gl_pen1, l0_pen1, gl_pen2, l0_pen2):
+    """
+    Perform network pruning on a machine learning model.
+
+    This function conducts network pruning using a specified optimization technique
+    and criteria over a set number of epochs. It updates the model's weights
+    by enforcing sparsity in a structured manner.
+    
+    Parameters
+    ----------
+    model : YourModelClass
+        An instance of your machine learning model class.
+    X : tf.Tensor
+        Input data used for pruning, typically a batch from the training dataset.
+    y : tf.Tensor
+        Ground truth labels corresponding to the input data.
+    train_dataset : tf.data.Dataset
+        The training dataset, used for iterating over batches during pruning.
+    prune_epochs : int
+        The number of pruning epochs, controlling the duration of the pruning process.
+    optimizer : tf.keras.optimizers.Optimizer
+        The optimization algorithm used for weight updates during pruning.
+    gl_pen1 : float
+        The regularization strength for Group Lasso within columns (features).
+    l0_pen1 : float
+        The L0 penalty applied to induce sparsity within columns.
+    gl_pen2 : float
+        The regularization strength for Group Lasso within rows (samples).
+    l0_pen2 : float
+        The L0 penalty applied to induce sparsity within rows.
+
+    Returns
+    -------
+    YourModelClass
+        The machine learning model after network pruning.
+    """
 
     for prune_epoch in range(prune_epochs):
         for batch in train_dataset:
