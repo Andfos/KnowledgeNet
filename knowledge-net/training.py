@@ -336,8 +336,10 @@ def train_network(
     """
     
     # Iterate for a number of training epochs.
-    for epoch in range(train_epochs):
+    for epoch in range(1, train_epochs+1):
+        epoch_loss = epoch_acc = total_preds = 0
         
+        # Iterate over batches.
         for batch in train_dataset:
             X_train = batch[0]
             y_train = batch[1]
@@ -348,28 +350,37 @@ def train_network(
             with tf.GradientTape() as tape:
                 train_preds = model(X_train)
                 loss = get_loss(
-                        model, y_train, train_preds, 
-                        reg_penalty=True, group_penalty=False)
+                        model, y_train, train_preds, reg_penalty=True)
                 grads = tape.gradient(loss, model.trainable_variables)
             del tape
             
             # Obtain the accuracy (for classification only).
             if classification:
                 accuracy = get_accuracy(model, y_train, train_preds)
-                rounded_accuracy = str(round(accuracy, 3))
             else:
-                rounded_accuracy = "NA"
+                accuracy = 0
             
             # Update the weights of the variables in the nwtwork.
             optimizer.apply_gradients(zip(grads, model.trainable_variables))
-            
-            # Format and print the progress of training.
-            print_string = (
-                    f"Step: {optimizer.iterations.numpy()}\t" +
-                    f"Loss: {str(round(loss.numpy(), 3))}\t" + 
-                    f"Accuracy: {rounded_accuracy}")
-            print(print_string)
+            num_preds = X_train.shape[0]
 
+            # Add in the batch-level metrics to the epoch-level metrics.
+            epoch_loss += (loss * num_preds)
+            epoch_acc += (accuracy * num_preds)
+            total_preds += num_preds
+
+        # Format and print the progress of training.
+        #print_string = (
+        #        f"Step: {optimizer.iterations.numpy()}\t" +
+        #        f"Loss: {str(round(loss.numpy(), 3))}\t" + 
+        #        f"Accuracy: {rounded_accuracy}")
+        #print(print_string)
+        epoch_loss = epoch_loss / total_preds
+        epoch_acc = (round(epoch_acc / total_preds, 3) if classification else "NA")
+        
+        if (epoch % (train_epochs / 100)) == 0 or epoch == 1:
+            print(f"Epoch: {epoch:3d}\tLoss: {epoch_loss:.3f}\tAccuracy: {epoch_acc}")
+    
     return model
     
 
