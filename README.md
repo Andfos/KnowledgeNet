@@ -1,7 +1,7 @@
 Introduction
 ============
-`KnowledgeNet` is a eXplainable AI (XAI) framework intended to aid in the creation 
-and pruning of Visible Neural Networks (VNNs). `KnowledgeNet` allows for the 
+*KnowledgeNet* is a eXplainable AI (XAI) framework intended to aid in the creation 
+and pruning of Visible Neural Networks (VNNs). *KnowledgeNet* allows for the 
 embedding of any hierarchical system within the architecture of a neural network. 
 An iterative training and pruning algorithm allows the user to sparsify the 
 network down to whatever level is required for downstream tasks. Various readout
@@ -9,17 +9,17 @@ formats allow users to view and interpret their networks at diffent levels of
 abstraction and varying degrees of sparsity. Complete package documentation can 
 be found [here](https://knowledgenet.readthedocs.io/en/latest/index.html).
 
-`KNowledgeNet` was inspired by 
-other VNN frameworks, including by not limited to `DCell`, `DrugCell`, and
-`ParsVNN`. See *Related Works* at the bottom of this page for links to similar 
+*KNowledgeNet* was inspired by 
+other VNN frameworks, including by not limited to *DCell*, *DrugCell*, and
+*ParsVNN*. See **Related Works** at the bottom of this page for links to similar 
 packages and publications.
 
 Motivation
-==========
+----------
 
 
 Related Works
-=============
+-------------
 
 
 
