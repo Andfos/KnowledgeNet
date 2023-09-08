@@ -1,12 +1,22 @@
-"""Create wrappers for Keras.Layer.Dense class and keras.Model class for use
-in KnowledgeNet framework.
-
-Classes
--------
-RestrictedLayer : 
-
-KnowledgeNet : 
 """
+Networks Module
+
+This module provides classes and functions to create a KnowledgeNet model, which is a neural network that allows specifying connections between modules in an ontology. It includes custom layers and functionalities for creating and training such networks.
+
+Classes:
+    - RestrictedLayer: A custom layer that enables specific connection masks for weight matrices.
+    - KnowledgeNet: A neural network model with customizable connections between modules.
+
+Dependencies:
+- TensorFlow (tf)
+- Keras
+- NumPy (np)
+- pandas (pd)
+- NetworkX (nx)
+- Matplotlib (plt)
+"""
+
+
 
 import tensorflow as tf
 import keras.layers
@@ -153,7 +163,8 @@ class KnowledgeNet(tf.keras.Model):
                  loss_fn,
                  aux=False, 
                  batchnorm=True):
-        """Initialize a Restricted Neural Network.
+        """
+        Initialize a KnowledgeNet model.
 
         Parameters
         ----------
@@ -225,10 +236,11 @@ class KnowledgeNet(tf.keras.Model):
 
 
     def _get_network_dimensions(self):
-        """Record the architecture of the network in a dataframe.
+        """
+        Record the architecture of the neural network in a dataframe.
         
         The architecture of the network, including the number of neurons, the 
-        activation function, the inputs, and whether batchnormalization and an 
+        activation function, the features, and whether batchnormalization and an 
         aux layer will be used is recorded for each layer of the network in 
         separate rows in the dataframe self.network_dims.
         """
@@ -276,8 +288,7 @@ class KnowledgeNet(tf.keras.Model):
                 # Set the number of neurons for the module layer from the 
                 # module_neurons_func.
                 num_neurons = set_module_neurons(
-                        num_children, 
-                        self.module_neurons_func)
+                        num_children, self.module_neurons_func)
                 activations[mod] = self.module_act
                 aux_enabled[mod] = True if self.aux else False
                 batchnorm_enabled[mod] = True if self.batchnorm else False
@@ -327,7 +338,8 @@ class KnowledgeNet(tf.keras.Model):
 
 
     def _build_input_layer(self):
-        """ Construct the input layer for each input-connected module.
+        """
+        Construct the input layer for each input-connected module.
 
         The name of the input layer follows the form <module_name>_inp. The
         layer is passed the entire vector of inputs, and it returns only the 
@@ -370,10 +382,11 @@ class KnowledgeNet(tf.keras.Model):
 
 
     def _build_module_layers(self):
-        """ Construct the layers for each module in the ontology.
+        """
+        Construct the layers for each module in the ontology.
 
         The module layer takes in a tensor output from a module_inp layer if 
-        it is directly mapped to inputs, or it takes in a tensor that is
+        it is directly mapped to features, or it takes in a tensor that is
         created by concatenating the tensors output from all of the module's 
         child modules.
         """
@@ -425,7 +438,8 @@ class KnowledgeNet(tf.keras.Model):
 
     def call(self, inputs, batch_train=True):
         
-        """Directly process a batch of inputs through the network.
+        """
+        Directly process a batch of inputs through the network.
         
         Parameters
         ----------
@@ -475,4 +489,8 @@ class KnowledgeNet(tf.keras.Model):
         
         # Return the output from the root of the ontology.
         return(output_map[self.root])
+
+
+
+
 
