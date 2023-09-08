@@ -304,8 +304,8 @@ def get_accuracy(model, truth, preds):
 
 
 def train_network(
-        model, train_dataset,
-        train_epochs, optimizer, classification=True):
+        model, dataset, epochs, optimizer, 
+        classification=True, training=True):
     """
     Train a machine learning model using a given dataset and optimizer.
 
@@ -318,9 +318,8 @@ def train_network(
     ----------
     model : tf.keras.Model
         The model to be trained.
-    train_dataset : tf.data.Dataset
-        The training dataset, typically created using TensorFlow data pipeline
-        utilities.
+    dataset : tf.data.Dataset
+        The dataset to process through the model.
     train_epochs : int
         The number of training epochs (complete passes through the training dataset).
     optimizer : tf.keras.optimizers.Optimizer
@@ -328,19 +327,26 @@ def train_network(
     classification : bool, optional
         A flag indicating whether the task is classification (True) or not (False).
         If True (default), the function monitors and prints accuracy during training.
+    training : bool, optional
+        A flag indicated whether in training mode, and whether the parameters 
+        should be updates.
 
     Returns
     -------
-    model : tf.keras.Model
-        The trained machine learning model.
+    Tuple
+        A tuple containing the following elements:
+        - epoch_loss : float
+            The total loss of the last full-pass over the dataset.
+        - epoch_acc : float (or str)
+            The total accuacy of the last full-pass over the dataset.
     """
     
     # Iterate for a number of training epochs.
-    for epoch in range(1, train_epochs+1):
+    for epoch in range(1, epochs+1):
         epoch_loss = epoch_acc = total_preds = 0
         
         # Iterate over batches.
-        for batch in train_dataset:
+        for batch in dataset:
             X_train = batch[0]
             y_train = batch[1]
             
@@ -360,8 +366,10 @@ def train_network(
             else:
                 accuracy = 0
             
-            # Update the weights of the variables in the nwtwork.
-            optimizer.apply_gradients(zip(grads, model.trainable_variables))
+            # Update the weights of the variables in the network
+            # if the training flag is set to True.
+            if training:
+                optimizer.apply_gradients(zip(grads, model.trainable_variables))
             num_preds = X_train.shape[0]
 
             # Add in the batch-level metrics to the epoch-level metrics.
@@ -378,10 +386,10 @@ def train_network(
         epoch_loss = epoch_loss / total_preds
         epoch_acc = (round(epoch_acc / total_preds, 3) if classification else "NA")
         
-        if (epoch % (train_epochs / 100)) == 0 or epoch == 1:
+        if training and ((epoch % (epochs / 100)) == 0 or epoch == 1):
             print(f"Epoch: {epoch:3d}\tLoss: {epoch_loss:.3f}\tAccuracy: {epoch_acc}")
     
-    return model
+    return epoch_loss, epoch_acc
     
 
 
@@ -629,44 +637,55 @@ def prune_network(
 
 
 
-def report_metrics(model, CLASSIFICATION):
+def report_metrics(model, train_dataset, test_dataset, optimizer, CLASSIFICATION):
+    """
+    Report model evaluation metrics including loss and accuracy on train and test datasets.
+
+    This function evaluates the provided model on both the training and test datasets
+    and computes loss and accuracy metrics for classification or regression tasks.
+    
+    Parameters
+    ----------
+    model : KnowledgeNet
+        The KnowledgeNet model to be evaluated.
+    train_dataset : tf.data.Dataset
+        The training dataset used for model evaluation.
+    test_dataset : tf.data.Dataset
+        The test dataset used for model evaluation.
+    optimizer : tf.keras.optimizers.Optimizer
+        The optimizer used for training the model.
+    CLASSIFICATION : bool
+        A boolean flag indicating whether the task is classification (True) 
+        or regression (False).
+   
+    Returns
+    -------
+    Tuple
+        A tuple containing the following elements:
+        - train_loss : float
+            The loss value on the training dataset.
+        - train_acc : float
+            The accuracy value on the training dataset (NA for regression tasks).
+        - test_loss : float
+            The loss value on the test dataset.
+        - test_acc : float
+            The accuracy value on the test dataset (NA for regression tasks).
+    """
 
     # Check the network structure.
     drop_cols = dict([(mod, []) for mod in model.mod_size_map.keys()])
     model, dG_prune, drop_cols, sparsity = check_network(
             model, model.dG, drop_cols)
-    print(sparsity)
-    raise
-
-    # Get loss on the train and test data prior to pruning.
-    train_preds = model(X_train, batch_train=False)
-    test_preds = model(X_test, batch_train=False)
-
-    train_loss = round(
-            training.get_loss(model, y_train, train_preds, reg_penalty=False).numpy(), 
-            2)
-    test_loss = round(
-            training.get_loss(model, y_test, test_preds, reg_penalty=False).numpy(), 
-            2)
-
-    # Report accuracies if the problem is a classification problem.
-    if CLASSIFICATION:
-        train_acc = training.get_accuracy(model, y_train, train_preds)
-        test_acc = training.get_accuracy(model, y_test, test_preds)
-        train_metric_name = "TrainAcc"
-        test_metric_name = "TestAcc"
-        train_metric = round(train_acc*100, 3)
-        test_metric = round(test_acc*100, 3)
-
-    else:
-        train_acc = "NA"
-        test_acc = "NA"
-        train_metric_name = "TrainLoss"
-        test_metric_name = "TestLoss"
-        train_metric = round(train_loss, 3)
-        test_metric = round(test_loss, 3)
     
-    return train_metric, test_metric
+    # Get the loss and accuract on the train dataset and the test dataset.
+    train_loss, train_acc = train_network(
+            model, train_dataset, 1, optimizer, 
+            classification=CLASSIFICATION, training=False)
+    test_loss, test_acc = train_network(
+            model, test_dataset, 1, optimizer, 
+            classification=CLASSIFICATION, training=False)
+    
+    return train_loss, train_acc, test_loss, test_acc
 
 
 
