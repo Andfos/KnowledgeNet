@@ -317,7 +317,7 @@ def train_network(
     Parameters
     ----------
     model : tf.keras.Model
-        The machine learning model to be trained.
+        The model to be trained.
     train_dataset : tf.data.Dataset
         The training dataset, typically created using TensorFlow data pipeline
         utilities.
@@ -476,7 +476,7 @@ def prune_network(
         model, X, y, train_dataset, prune_epochs, 
         optimizer, gl_pen1, l0_pen1, gl_pen2, l0_pen2):
     """
-    Perform network pruning on a machine learning model.
+    Perform network pruning on KnowledgeNet model instance.
 
     This function conducts network pruning using a specified optimization technique
     and criteria over a set number of epochs. It updates the model's weights
@@ -484,7 +484,7 @@ def prune_network(
     
     Parameters
     ----------
-    model : YourModelClass
+    model : tf.keras.Model
         An instance of your machine learning model class.
     X : tf.Tensor
         Input data used for pruning, typically a batch from the training dataset.
@@ -497,39 +497,38 @@ def prune_network(
     optimizer : tf.keras.optimizers.Optimizer
         The optimization algorithm used for weight updates during pruning.
     gl_pen1 : float
-        The regularization strength for Group Lasso within columns (features).
+        The regularization strength for Group Lasso of columns.
     l0_pen1 : float
         The L0 penalty applied to induce sparsity within columns.
     gl_pen2 : float
-        The regularization strength for Group Lasso within rows (samples).
+        The regularization strength for Group Lasso of rows.
     l0_pen2 : float
         The L0 penalty applied to induce sparsity within rows.
 
     Returns
     -------
-    YourModelClass
+    tf.keras.Model
         The machine learning model after network pruning.
     """
-
+    
+    # Prune the model for a specified number of epochs.
     for prune_epoch in range(prune_epochs):
         for batch in train_dataset:
             X = batch[0]
             y = batch[1]
-
+            
+            # Calculate gradients. 
             with tf.GradientTape() as tape:
                 tape.reset()
                 train_preds = model(X)
                 trainable_vars = model.trainable_variables
                 loss = get_loss(
-                        model, y, train_preds, 
-                        reg_penalty=True, group_penalty=True)
-                
+                        model, y, train_preds, reg_penalty=True)
                 grads = tape.gradient(loss, trainable_vars)
             del tape
             
-            old_parameters = [tf.stop_gradient(p) for p in model.trainable_variables]
-            
             # Iterate over the trainable variables.
+            old_parameters = [tf.stop_gradient(p) for p in model.trainable_variables]
             for var, grad, old_param in zip(
                     model.trainable_variables, grads, old_parameters):
                 var_name = var.name

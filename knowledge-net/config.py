@@ -11,7 +11,7 @@ from tensorflow.keras import initializers
 from tensorflow.keras import regularizers
 
 """
-General Parameters
+Parameters
 ------------------
 EXPERIMENT_NAME : str
     The name of the experiment. This should be the same name as the name of the
