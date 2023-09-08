@@ -13,10 +13,7 @@ Dependencies:
 - NumPy (np)
 - pandas (pd)
 - NetworkX (nx)
-- Matplotlib (plt)
 """
-
-
 
 import tensorflow as tf
 import keras.layers
@@ -28,10 +25,7 @@ from tensorflow.keras import layers
 from keras.layers import (
         Dense, Layer, Input, Concatenate, Add, BatchNormalization, Dropout)
 from keras.models import Sequential
-from sklearn.metrics import mean_squared_error
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import EarlyStopping
-import matplotlib.pyplot as plt
 from tensorflow.keras.layers import BatchNormalization, LayerNormalization
 from tensorflow.keras import initializers
 from tensorflow.keras.utils import plot_model
@@ -140,10 +134,43 @@ class KnowledgeNet(tf.keras.Model):
 
     Attributes
     ----------
-        
-
-
-
+    optimizer : keras.optimizers
+        The optimizer used for training the parameters of the model.
+    output_dim : int
+        Number of neurons in the output layer.
+    output_act : str
+        The activation function for the output layer.
+    module_act : str
+        The activation function for the module layers.
+    input_act : str
+        The activation function for the module-input layers.
+    root : str
+        Name of the root node of the ontology.
+    dG : nx.DiGraph
+        The directed graph representing the ontology.
+    input_dim : int
+        The dimensions of the input space.
+    module_neurons_func : str 
+        String defining the function used to allocate neurons to modules.
+    term_direct_input_map : dict
+        Dictionary specifying the input features to modules with direct feature
+        mappings.
+    mod_size_map : dict 
+        Dictionary defining number of features annotated 
+        (directly or indirectly) to each term.
+    initializer : keras.initializers.initializers_v2
+        The initializer of the weight kernels.
+    input_regularizer : keras.regularizers
+        The regularizer used on the module-input layers.
+    module_regularizer : keras.regularizers
+        The regularizer used on the module layers.
+    loss_fn : keras.losses
+        The loss function used for training the network.
+    aux : bool, optional
+        Flag controlling the use of auxiliary layers. Default is `False`.
+    batchnorm : bool, optional
+        Flag controlling the use of batch-normalization after module 
+        layers. Default is `True`.
     """
     
     def __init__(self,
