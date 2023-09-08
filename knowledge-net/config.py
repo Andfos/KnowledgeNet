@@ -13,7 +13,6 @@ from tensorflow.keras import regularizers
 """
 General Parameters
 ------------------
-
 EXPERIMENT_NAME : str
     The name of the experiment. This should be the same name as the name of the
     parent directory that will host the data and results files of the
@@ -31,21 +30,7 @@ TEST_SIZE : float
     Specify the ratio of test set size to training set size.
 INPUT_DIM : int
     Specify the total number of features used by the model. 
-"""
 
-# General parameters
-EXPERIMENT_NAME = "regression"
-EXP_DIR = f"../tests/{EXPERIMENT_NAME}"
-RES_DIR = f"{EXP_DIR}/results"
-MODULE_FILE = "data/modules.csv"
-#MODULE_FILE = None
-CLASSIFICATION = False
-BUILD_MODE = True
-TEST_SIZE = 0.2
-INPUT_DIM = 10
-
-
-"""
 Saving Parameters
 -----------------
 LOAD_MODEL : bool
@@ -54,7 +39,48 @@ LOAD_MODEL : bool
 SAVE_MODEL : bool
     Specify whether the model should be saved. Default is
     `False`.
+MODEL_LOADDIR : str
+    Path to the directory containing the model that will be loaded 
+    (if LOAD_MODEL is set to `True`).
+MODEL_SAVEDIR : str
+    Path to the directory of where to save the model 
+    (if SAVE_MODEL is set to `True`).
+
+Build Mode Parameters
+---------------------
+These variables only apply if BUILD_MODE is set to `True`. A data set of size 
+<DATA_SIZE> will be generated with <INPUT_DIM> i.i.d. features drawn uniformly 
+from [<LOWER>, <UPPER>]. Output will be generated from input features according 
+to FUNC and NOISE_SD.
+
+Examples
+--------
+dog...
+
+FUNC : str 
+    Function specifying the relationship of output to inpur features. This
+    function will be used in conjunction with NOISE_SD to generate output 
+    dat
+NOISE_SD : str
+    Function specifying the relationship of output noise standard deviation to 
+    input features. Default is '0'. 
+DATA_SIZE : int
+    Number of observations to generate.
+LOWER : float
+    The lower bound on the domain of feature data. 
 """
+
+# General parameters
+EXPERIMENT_NAME = "regression"
+EXP_DIR = f"../tests/{EXPERIMENT_NAME}"
+RES_DIR = f"{EXP_DIR}/results"
+MODULE_FILE = "data/modules.csv"
+CLASSIFICATION = False
+BUILD_MODE = True
+TEST_SIZE = 0.2
+INPUT_DIM = 10
+
+
 
 # Saving parameters
 LOAD_MODEL = False
@@ -64,11 +90,10 @@ MODEL_SAVEDIR = f"{EXP_DIR}/models/Model_1"
 
 # BUILD_MODE parameters (if BUILD_MODE is True)
 FUNC = "x[0]**2 + 2*x[2] - 3*x[3] + x[8] * x[9]"
-#FUNC = "x[1] + 2*x[2] - 3*x[3]"
 NOISE_SD = "0"
 DATA_SIZE = 1000
-LOWER = -10
-UPPER = 10
+LOWER = -10.
+UPPER = 10.
 
 
 # PRODUCTION_MODE (aka BUILD_MODE is false)
