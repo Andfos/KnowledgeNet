@@ -325,13 +325,37 @@ def load_ontology(filename, feature_id_map):
 
 
 def set_module_neurons(n, dynamic_neurons_func):
-    """ Retrieve the number of neurons for a given module. 
+    """ Retrieve the number of neurons to assign to a given module. 
 
-    This function allows the user to specify the number of neurons a module 
-    will contain as a function of the number of its inputs. It can be static, 
+    This function allows the user to retrieve the number of neurons a module 
+    should contain as a function of the number of its inputs. It can be static, 
     where each module layer gets the same number of inputs, or it can be 
     dynamic, where the number of neurons is a function of the number of inputs 
     to the layer.
+    
+    Parameters
+    ----------
+    n : int
+        The number of inputs to the layer. If not included in 
+        dynamic_neurons_func, the number of neurons will not be dependent 
+        on the number of inputs to the layer.
+    dynamic_neurons_func : str
+        String representation of the function relating the number of neurons 
+        in the module to the number of inputs.
+
+    Returns
+    -------
+    mod_neurons : int
+        Number of neurons that should be assigned to the module.
+
+    Examples
+    --------
+    To set the number of neurons to twice the number of inputs: 
+    >>> mod_neurons = set_module_neurons(<number of inputs>, "2*n")
+
+    To set the number of neurons so that they do not vary with the number of 
+    inputs, we simply do not include `n` in the equation:
+    >>> mod_neurons = set_module_neurons(<number of inputs>, 64)
     """
    
     math_funcs["n"] = n
