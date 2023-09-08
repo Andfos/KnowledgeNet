@@ -53,10 +53,6 @@ These variables only apply if BUILD_MODE is set to `True`. A data set of size
 from [<LOWER>, <UPPER>]. Output will be generated from input features according 
 to FUNC and NOISE_SD.
 
-Examples
---------
-dog...
-
 FUNC : str 
     Function specifying the relationship of output to inpur features. This
     function will be used in conjunction with NOISE_SD to generate output 
