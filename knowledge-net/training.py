@@ -391,17 +391,53 @@ def train_network(
 
 
 def check_network(model, dG_init, drop_cols):
+    """
+    Check the neural network architecture.
+
+    The function iterates over module-input layers, module layers, and 
+    auxiliary layers to determine if any children have become disonnected 
+    from their parents in the ontology. Children are disconnected from their 
+    parents if there are no non-zero weight paths from the child to the parent. 
+    Additionally, the function checks the overall sparsity level of the model, 
+    with respect to the aforementioned layers.
+
+    model : tf.keras.Model
+        A KnowledgeNet model instance.
+    dG_init : nx.diGraph
+        The directed graph representing the current ontology of the network.
+    drop_cols : dict
+        Dictionary representation of the children that have become disconnected 
+        from their parents.
+    
+    Returns
+    -------
+    Tuple
+        A tuple containing the following elements:
+        - model : tf.keras.Model
+            The KnowledgeNet model instance.
+        - dG_prune : nx.DiGraph
+            The directed graph repreneting the ontology of the network after
+            checking the parent-child relationships.
+        - drop_cols : dict
+            Updated dictionary of the children that have become disconnected 
+            from their parents.
+        - sparsity : float
+            A float in [0, 1] representing the percentage of weights in the 
+            chhecked layers that have exactly 0 magnitude.
+    """
 
     dG_prune = dG_init.copy()
-    
     all_connects = list()
+    
+    # Iterate over the trainable variables in the model.
     for var in model.trainable_variables:
         update = False
         layer_name = var.name.split("/")[0]
         mod = layer_name.split("_")[0]
         layer_type = layer_name.split("_")[1]
         
-
+        # Do not check layers that are not module-input layers, module layers, 
+        # or auxiliary layers. Ignore biases as well.
         if layer_type not in ["inp", "mod", "aux"]:
             continue
         if "bias" in var.name:
@@ -426,7 +462,6 @@ def check_network(model, dG_init, drop_cols):
         # Check to see which inputs have only zero weights connecting to the 
         # input layer.
         if layer_type == "inp":
-
             input_set = sorted(list(model.term_direct_input_map[mod]))
             row = model.network_dims.loc[model.network_dims["Module"] == mod]
             children = list(row["Children"])
@@ -446,7 +481,6 @@ def check_network(model, dG_init, drop_cols):
     
         # Deal with the module layers
         if layer_type == "mod":
-
             all_connects.extend(connections.numpy().flatten())
             row = model.network_dims.loc[model.network_dims["Module"] == mod]
             children = list(row["Children"])
@@ -470,10 +504,12 @@ def check_network(model, dG_init, drop_cols):
                     except:
                         nx.NetworkXError
                 start_index += child_neuron_num
-
+    
+    # Calculate the sparsity, considering only the checked variables.
     all_connects = [int(num) for num in all_connects]
     zeros = all_connects.count(0)
     sparsity = round((zeros / len(all_connects) * 100), 2)
+
     return model, dG_prune, drop_cols, sparsity
         
 
@@ -582,5 +618,59 @@ def prune_network(
                     if loss <= Q_L:
                         break
                     L = 1.1*L
+
+
+
+
+
+
+
+
+
+
+
+def report_metrics(model, CLASSIFICATION):
+
+    # Check the network structure.
+    drop_cols = dict([(mod, []) for mod in model.mod_size_map.keys()])
+    model, dG_prune, drop_cols, sparsity = check_network(
+            model, model.dG, drop_cols)
+    print(sparsity)
+    raise
+
+    # Get loss on the train and test data prior to pruning.
+    train_preds = model(X_train, batch_train=False)
+    test_preds = model(X_test, batch_train=False)
+
+    train_loss = round(
+            training.get_loss(model, y_train, train_preds, reg_penalty=False).numpy(), 
+            2)
+    test_loss = round(
+            training.get_loss(model, y_test, test_preds, reg_penalty=False).numpy(), 
+            2)
+
+    # Report accuracies if the problem is a classification problem.
+    if CLASSIFICATION:
+        train_acc = training.get_accuracy(model, y_train, train_preds)
+        test_acc = training.get_accuracy(model, y_test, test_preds)
+        train_metric_name = "TrainAcc"
+        test_metric_name = "TestAcc"
+        train_metric = round(train_acc*100, 3)
+        test_metric = round(test_acc*100, 3)
+
+    else:
+        train_acc = "NA"
+        test_acc = "NA"
+        train_metric_name = "TrainLoss"
+        test_metric_name = "TestLoss"
+        train_metric = round(train_loss, 3)
+        test_metric = round(test_loss, 3)
+    
+    return train_metric, test_metric
+
+
+
+
+
 
 
