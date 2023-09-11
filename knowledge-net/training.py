@@ -528,8 +528,8 @@ def check_network(model, dG_init, drop_cols):
 
 
 def prune_network(
-        model, X, y, train_dataset, prune_epochs, 
-        optimizer, gl_pen1, l0_pen1, gl_pen2, l0_pen2):
+        model, dataset, prune_epochs, 
+        gl_pen1, l0_pen1, gl_pen2, l0_pen2):
     """
     Perform network pruning on KnowledgeNet model instance.
 
@@ -541,16 +541,10 @@ def prune_network(
     ----------
     model : tf.keras.Model
         An instance of your machine learning model class.
-    X : tf.Tensor
-        Input data used for pruning, typically a batch from the training dataset.
-    y : tf.Tensor
-        Ground truth labels corresponding to the input data.
-    train_dataset : tf.data.Dataset
-        The training dataset, used for iterating over batches during pruning.
+    dataset : tf.data.Dataset
+        The dataset used for iterating over batches during pruning.
     prune_epochs : int
         The number of pruning epochs, controlling the duration of the pruning process.
-    optimizer : tf.keras.optimizers.Optimizer
-        The optimization algorithm used for weight updates during pruning.
     gl_pen1 : float
         The regularization strength for Group Lasso of columns.
     l0_pen1 : float
@@ -568,7 +562,7 @@ def prune_network(
     
     # Prune the model for a specified number of epochs.
     for prune_epoch in range(prune_epochs):
-        for batch in train_dataset:
+        for batch in dataset:
             X = batch[0]
             y = batch[1]
             
@@ -613,8 +607,7 @@ def prune_network(
                     var.assign(u_new)
                     var_diff = tf.math.subtract(tf.stop_gradient(u_new), old_param)
                     Q_L = (fy 
-                            + tf.math.reduce_sum(tf.math.multiply(var_diff,
-                                                                  grad)) 
+                            + tf.math.reduce_sum(tf.math.multiply(var_diff, grad)) 
                             + L/2 * tf.math.reduce_sum(tf.math.pow(var_diff, 2))
                           )
                     
@@ -685,7 +678,10 @@ def report_metrics(model, train_dataset, test_dataset, optimizer, CLASSIFICATION
             model, test_dataset, 1, optimizer, 
             classification=CLASSIFICATION, training=False)
     
-    return train_loss, train_acc, test_loss, test_acc
+    return (
+            train_loss, train_acc, test_loss, 
+            test_acc, sparsity, drop_cols, dG_prune
+            )
 
 
 
